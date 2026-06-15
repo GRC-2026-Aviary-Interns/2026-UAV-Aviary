@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 from aviary.subsystems.propulsion.rc_electric.model.rc_performance import \
-    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerResiduals, Vectorization
+    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerImplicit, Vectorization
 from aviary.utils.aviary_values import AviaryValues
 from aviary.variable_info.variables import Aircraft, Dynamic
 
@@ -89,13 +89,13 @@ class RCPropMission(om.Group):
                 ]
         )
         self.add_subsystem(
-            'power_summation', 
-            PowerResiduals(num_nodes=nn), 
+            'power_net',
+            PowerImplicit(num_nodes=nn),
             promotes_inputs=[
-                Dynamic.Vehicle.Propulsion.PROP_POWER
-                ],
+                Dynamic.Vehicle.Propulsion.PROP_POWER,
+            ],
             promotes_outputs=[
-                'power_net'
+                Dynamic.Vehicle.Propulsion.CURRENT,
             ]
         )
 
@@ -173,13 +173,13 @@ class RCPropMission(om.Group):
         )
         
         self.add_subsystem(
-            'power_summation_max', 
-            PowerResiduals(num_nodes=nn), 
+            'power_net_max',
+            PowerImplicit(num_nodes=nn),
             promotes_inputs=[
-                (Dynamic.Vehicle.Propulsion.PROP_POWER, Dynamic.Vehicle.Propulsion.PROP_POWER_MAX), 
-                ],
+                (Dynamic.Vehicle.Propulsion.PROP_POWER, Dynamic.Vehicle.Propulsion.PROP_POWER_MAX),
+            ],
             promotes_outputs=[
-                ('power_net','power_net_max')
+                (Dynamic.Vehicle.Propulsion.CURRENT, Dynamic.Vehicle.Propulsion.CURRENT_MAX),
             ]
         )
         
@@ -192,9 +192,6 @@ class RCPropMission(om.Group):
         self.connect('esc_max.current_out', 'motor_max.current')
         #TODO Alex from phase builder base import add_control
 
-        self.add_constraint('power_net', equals=0, ref=1e2)
-        self.add_constraint('power_net_max', equals=0, ref=1e2)
-        
         self.add_constraint('current_constraint', upper=0, ref=1e2)
         self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=1, upper=125, ref=1e3, units='rps')
 
@@ -202,21 +199,21 @@ class RCPropMission(om.Group):
         self.add_constraint('ct_max', lower=0, upper=0.12, ref=1.0, units='unitless')
         self.add_constraint('cp_max', lower=0.0034, upper=0.08, ref=1.0, units='unitless')
 
-        self.connect('battery.power', 'power_summation.power_batt')
-        self.connect('esc.power', 'power_summation.power_esc')
-        self.connect('motor.power', 'power_summation.power_motor')
+        self.connect('battery.power', 'power_net.power_batt')
+        self.connect('esc.power', 'power_net.power_esc')
+        self.connect('motor.power', 'power_net.power_motor')
 
-        self.connect('battery_max.power', 'power_summation_max.power_batt')
-        self.connect('esc_max.power', 'power_summation_max.power_esc')
-        self.connect('motor_max.power', 'power_summation_max.power_motor')
+        self.connect('battery_max.power', 'power_net_max.power_batt')
+        self.connect('esc_max.power', 'power_net_max.power_esc')
+        self.connect('motor_max.power', 'power_net_max.power_motor')
 
-        # self.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
-        # self.nonlinear_solver.options["maxiter"] = 15
-        # self.nonlinear_solver.options["err_on_non_converge"] = False
-        # self.nonlinear_solver.linesearch = om.BoundsEnforceLS()
-        # self.nonlinear_solver.linesearch.options["bound_enforcement"] = "scalar"
-        # self.nonlinear_solver.linesearch.options["print_bound_enforce"] = False
-        # self.linear_solver = om.DirectSolver(assemble_jac=True)#, rhs_checking =True)
+        self.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        self.nonlinear_solver.options["maxiter"] = 15
+        self.nonlinear_solver.options["err_on_non_converge"] = False
+        self.nonlinear_solver.linesearch = om.BoundsEnforceLS()
+        self.nonlinear_solver.linesearch.options["bound_enforcement"] = "scalar"
+        self.nonlinear_solver.linesearch.options["print_bound_enforce"] = False
+        self.linear_solver = om.DirectSolver(assemble_jac=True)
 
         self.options['auto_order'] = True
 

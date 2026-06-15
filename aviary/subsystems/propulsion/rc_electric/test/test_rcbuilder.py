@@ -26,6 +26,7 @@ options.set_val(Settings.VERBOSITY, 0)
 
 options = options
 options.set_val(Aircraft.Engine.NUM_ENGINES, 2)
+options.set_val(Aircraft.Engine.NUM_WING_ENGINES, 2)
 
 
 engine = RCBuilder()
@@ -63,4 +64,4 @@ esc_power = prob.get_val('rc_electric.esc.power', units='W')
 motor_power = prob.get_val('rc_electric.motor.power', units='W')
 prop_power = prob.get_val(Dynamic.Vehicle.Propulsion.PROP_POWER, units='W')
 power_residual = battery_power + esc_power + motor_power - prop_power
- #print(battery_power, esc_power, motor_power, prop_power)
+print("Bat_pow W", battery_power, "Esc_Pow W", esc_power,"Motor_Pow W", motor_power, "Prop_Pow W", prop_power)

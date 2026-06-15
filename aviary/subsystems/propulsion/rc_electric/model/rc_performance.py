@@ -105,7 +105,8 @@ class ElectronicSpeedController(om.ExplicitComponent):
         m = a*b*c*transition**(c - 1) / (b*transition**c + 1)**2
         efficiency = np.where(t >= transition, a * (1 - 1 / (1 + b*t**c)), m*t + ((a * (1 - 1 / (1 + b*transition**c)))-m*transition))
 
-        partials['efficiency', Dynamic.Vehicle.Propulsion.THROTTLE] = np.where(t>=transition, a*b*c*t**(c - 1) / (b*t**c + 1)**2, m)
+        t_safe = np.where(t > 0, t, transition)
+        partials['efficiency', Dynamic.Vehicle.Propulsion.THROTTLE] = np.where(t>=transition, a*b*c*t_safe**(c - 1) / (b*t_safe**c + 1)**2, m)
         
         # partials['']
         partials['voltage_out', 'voltage_in'] = inputs[Dynamic.Vehicle.Propulsion.THROTTLE] * efficiency
