@@ -6,15 +6,13 @@ from aviary.variable_info.functions import add_aviary_input, add_aviary_option, 
 
 
 class RCPropPreMission(om.Group):
-    """Calculate electric motor mass for a single motor."""
+    """Calculate RC electric propulsion premission motor and battery properties."""
 
     def initialize(self):
-        # self.options.declare('m', default = 1.3132, desc='m coefficient for kv(mass, max_current): kv = m * max_current/mass + b')
-        # self.options.declare('b', default = 0.01, desc='b coefficient for kv(mass, max_current): kv = m * max_current/mass + b')
         
-        add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_SLOPE)
-        add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_INT)
-        
+        add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_SLOPE)    # m = KV_EQ_SLOPE
+        add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_INT)      # b = KV_EQ_INT
+      
         self.options.declare(
             'aviary_options',
             types=AviaryValues,
@@ -24,13 +22,11 @@ class RCPropPreMission(om.Group):
         self.name = 'rcpropulsion_premission'
 
     def setup(self):
-        # Determine max torque of scaled motor
-
-        # We create a set of default inputs for this group so that in pre-mission, the
-        #   group can be instantiated with only scale_factor as an input.
-        # Without inputs it will return the max torque based on the non-dimensional
-        #   scale factor chosen by the optimizer.
-        # The max torque is then used in pre-mission to determine weight of the system.
+        #battery mass
+        # battery voltage
+        # idle current
+        # max continuous current
+        # motor mass
         
         #TODO: CITE!
         self.add_subsystem(
@@ -64,7 +60,7 @@ class RCPropPreMission(om.Group):
                 'kv = m * max_current / motor_mass + b',
                 kv={'val': 0.0, 'units': 'rpm/V'},
                 max_current={'val': 0.0, 'units': 'A'},
-                motor_mass={'val': 0.0, 'units': 'g'},
+                motor_mass={'val': 0.0, 'units': 'k g'},
                 m=self.options[Aircraft.Engine.Motor.KV_EQ_SLOPE],
                 b=self.options[Aircraft.Engine.Motor.KV_EQ_INT],
             ),
@@ -74,8 +70,8 @@ class RCPropPreMission(om.Group):
             ],
             promotes_outputs=[('kv', Aircraft.Engine.Motor.KV)]
         )
-        
-        self.add_constraint(Aircraft.Engine.Motor.KV, upper=540, units='rpm/V')
+        # commented out for now, may add back in later
+        # self.add_constraint(Aircraft.Engine.Motor.KV, upper=540, units='rpm/V')
         # self.add_subsystem(
         #     'total_mass',
         #     om.ExecComp(

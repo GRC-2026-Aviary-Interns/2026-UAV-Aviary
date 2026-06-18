@@ -193,7 +193,7 @@ class RCPropMission(om.Group):
         #TODO Alex from phase builder base import add_control
 
         self.add_constraint('power_net', equals=0, ref=1e2)
-        self.add_constraint('power_net_max', equals=0, ref=1e2)
+        self.add_constraint('power_net_max', lower=0, ref=1e2)
         
         self.add_constraint('current_constraint', upper=0, ref=1e2)
         self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=1, upper=125, ref=1e3, units='rps')
