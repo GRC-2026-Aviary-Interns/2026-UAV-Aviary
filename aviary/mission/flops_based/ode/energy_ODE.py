@@ -205,16 +205,34 @@ class EnergyODE(_BaseODE):
         # )
 
         if core_needs_solver or ext_needs_solver:
+            # atol/rtol of 1e-10 is unrealistically tight for a metamodel-based
+            # thrust residual (~1 lbf scale) and left the Newton failing to converge
+            # in the default 10 iterations. 1e-8 with more iterations converges
+            # cleanly while still being well below solver/optimizer tolerances.
             sub1.nonlinear_solver = om.NewtonSolver(
                 solve_subsystems=True,
-                atol=1.0e-10,
-                rtol=1.0e-10,
+                atol=1.0e-8,
+                rtol=1.0e-8,
+                maxiter=60,
             )
             print_level = 2
 
             sub1.nonlinear_solver.linesearch = om.BoundsEnforceLS()
             sub1.linear_solver = om.DirectSolver(assemble_jac=True)
-            sub1.nonlinear_solver.options['err_on_non_converge'] = True
+            # Use a DENSE assembled Jacobian. Only the dense LU path honors
+            # err_on_singular=False; the sparse (splu) path always raises on a
+            # singular factorization. solver_sub is small, so dense is cheap.
+            sub1.options['assembled_jac_type'] = 'dense'
+            # Robustness: do NOT raise when the cruise solve fails to converge. The
+            # optimizer probes infeasible trial points (e.g. a too-slow motor that
+            # can't produce cruise thrust); raising there crashes the whole run.
+            # Returning the non-converged (still finite) state instead lets the
+            # optimizer see a bad point and step away.
+            sub1.nonlinear_solver.options['err_on_non_converge'] = False
+            # Likewise, don't raise if the assembled Jacobian is singular when
+            # computing derivatives at a flat-gradient (windmilling) operating point;
+            # return least-squares derivatives so the optimizer can continue.
+            sub1.linear_solver.options['err_on_singular'] = False
             sub1.nonlinear_solver.options['iprint'] = print_level
 
         self.options['auto_order'] = True

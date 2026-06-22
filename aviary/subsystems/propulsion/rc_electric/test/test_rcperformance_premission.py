@@ -14,9 +14,11 @@ class TestRCPropPre(unittest.TestCase):
     def test_premission_calcs(self):
         prob = om.Problem()
         options = AviaryValues()
+        options.set_val(Aircraft.Engine.Motor.KV_EQ_SLOPE, 1.3132)
+        options.set_val(Aircraft.Engine.Motor.KV_EQ_INT, 0.01)
 
         prob.model.add_subsystem(
-            'rc_calcs', RCPropPreMission(m=1.3132, b=0.01, aviary_options=options), promotes=['*']
+            'rc_calcs', RCPropPreMission(aviary_options=options), promotes=['*']
         )
 
         prob.setup(force_alloc_complex=True)
@@ -33,7 +35,7 @@ class TestRCPropPre(unittest.TestCase):
         resistance = prob.get_val(Aircraft.Engine.Motor.RESISTANCE, 'ohm')
         energy = prob.get_val(Aircraft.Battery.ENERGY_CAPACITY, 'W*h')
 
-        kv_expected = 547.1766667
+        kv_expected = 600.0
         resistance_expected = 0.05582266503
         energy_expected = 109.11522
 

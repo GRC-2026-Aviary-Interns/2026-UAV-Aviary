@@ -27,9 +27,9 @@ class RCBuilder(EngineModel):
     #         },
     #         Dynamic.Vehicle.Propulsion.CURRENT_CON: {
     #             'upper': 0, 
-    #             'type': 'path',
-    #         }
-    #     }
+    #             'type': 'path',1
+    #         }1
+    #     }1
 
     #     return constraints
 
@@ -61,17 +61,23 @@ class RCBuilder(EngineModel):
                 'upper': 3.6, #TODO: this placeholder can be varied
                 # 'val': 2.2,  
             },
-            Aircraft.Engine.Motor.MAX_CONT_CURRENT: {
-                'units': 'A',
-                'lower': 70, #limit is based on available motor
-                'upper': 140, #limit is based on available motor
-                # 'val': 100,  
-            },
+            # MAX_CONT_CURRENT is intentionally NOT a design variable (KV depends on the
+            # current/mass ratio, so freeing both makes KV impossible to bound cleanly).
+            # With KV = 2105.54*max_current/motor_mass - 80.83, a realistic KV of 250-600
+            # corresponds to a motor mass of ~0.31-0.64 kg -- comfortably under 1 kg, as
+            # expected for these 7 kg planes. KV itself is hard-clamped to [250, 600] in
+            # the premission, so any out-of-range mass probe still yields a valid KV;
+            # these bounds just keep the optimizer in the realistic motor-mass range.
             Aircraft.Engine.Motor.MASS: {
-                'units': 'kg',
-                'lower': 0.25,
-                'upper': 1.600,
-                # 'val': 1.0,  
+                # Native units of this var are lbm. Declaring the DV in kg made the
+                # pyOptSparse driver mis-convert by (lbm/kg)^2 -- it showed 2.187 for a
+                # 0.45 kg model value and the [0.25,0.65] kg bound never bit -- because
+                # motor:mass is consumed in mixed units (grams in the KV calc, kg in DBF).
+                # Declaring in native lbm makes the DV<->model map an identity.
+                # Bounds are [0.25, 0.65] kg expressed in lbm.
+                'units': 'lbm',
+                'lower': 0.5512,   # 0.25 kg
+                'upper': 1.4330,   # 0.65 kg
             },
             # Aircraft.Engine.Propeller.PITCH: {
             #     'units': 'inch',
@@ -143,24 +149,23 @@ class RCBuilder(EngineModel):
         return parameters
 
     def get_controls(self, phase_name=None):
-        controls_dict = {
-            Dynamic.Vehicle.Propulsion.CURRENT: {
-                'targets': Dynamic.Vehicle.Propulsion.CURRENT,
-                'units': 'A',
-                'opt': True,
-                'lower': 10.0,
-                'ref': 1.0e2,
-            },
-            Dynamic.Vehicle.Propulsion.CURRENT_MAX: {
-                'targets': Dynamic.Vehicle.Propulsion.CURRENT_MAX,
-                'units': 'A',
-                'opt': True,
-                'lower': 10.0,
-                'ref': 1.0e2,
-            },
-        }
-        return controls_dict
-    
+        # controls_dict = {
+        #     Dynamic.Vehicle.Propulsion.CURRENT: {
+        #         'targets': Dynamic.Vehicle.Propulsion.CURRENT,
+        #         'units': 'A',
+        #         'opt': True,
+        #         'lower': 10.0,
+        #         'ref': 1.0e2,
+        #     },
+        #     Dynamic.Vehicle.Propulsion.CURRENT_MAX: {
+        #         'targets': Dynamic.Vehicle.Propulsion.CURRENT_MAX,
+        #         'units': 'A',
+        #         'opt': True,
+        #         'lower': 10.0,
+        #         'ref': 1.0e2,
+        #     },
+        # }
+        return {}
     def get_mass_names(self):
         return [Aircraft.Battery.MASS, Aircraft.Engine.Motor.MASS]#, Aircraft.Engine.MASS]
     

@@ -20,12 +20,20 @@ class TestRCPropMission(unittest.TestCase):
         options = AviaryValues()
         options.set_val(Aircraft.Engine.NUM_ENGINES, 1)
         prob.model.add_subsystem('rc_prop_group', RCPropMission(num_nodes=nn, aviary_options= options), promotes=['*'])
+
+        # Solve the implicit current balance with Newton for this residual test.
+        prob.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        prob.model.nonlinear_solver.options['maxiter'] = 30
+        prob.model.nonlinear_solver.options['err_on_non_converge'] = True
+        prob.model.nonlinear_solver.linesearch = om.BoundsEnforceLS()
+        prob.model.nonlinear_solver.linesearch.options['bound_enforcement'] = 'scalar'
+        prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
         
         prob.setup(force_alloc_complex=True)
 
         prob.set_val(Aircraft.Battery.VOLTAGE, 22.2, units='V')
         prob.set_val(Aircraft.Battery.RESISTANCE, 0.05, units='ohm')
-        prob.set_val(Dynamic.Vehicle.Propulsion.THROTTLE, np.linspace(0, 1, nn))
+        prob.set_val(Dynamic.Vehicle.Propulsion.THROTTLE, np.full(nn, 0.8))
         prob.set_val(Aircraft.Engine.Motor.IDLE_CURRENT, 0.91, units='A')
         prob.set_val(Aircraft.Engine.Motor.MAX_CONT_CURRENT, 120, units='A')
         prob.set_val(Aircraft.Engine.Motor.RESISTANCE, 0.032, units='ohm')

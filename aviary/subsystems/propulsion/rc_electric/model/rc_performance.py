@@ -216,6 +216,64 @@ cp = cp.flatten()
 order = np.lexsort((xt[:,3], xt[:,2], xt[:,1], xt[:,0]))
 xt = xt[order]
 
+class Vectorization(om.ExplicitComponent):
+    def initialize(self):
+        self.options.declare('num_nodes', default=1, types=int)
+    def setup(self):
+        nn=self.options['num_nodes']
+        add_aviary_input(self, Aircraft.Engine.Propeller.DIAMETER, val=0.4826, units = 'm')
+        add_aviary_input(self, Aircraft.Engine.Propeller.PITCH, val=12, units = 'inch')
+
+        self.add_output('temp_diameter', val=np.zeros(nn), units='m')
+        self.add_output('temp_pitch', val=np.zeros(nn), units='inch')
+
+        self.declare_partials('temp_diameter', Aircraft.Engine.Propeller.DIAMETER, val=1)
+        self.declare_partials('temp_pitch', Aircraft.Engine.Propeller.PITCH, val=1)
+    def compute(self, inputs, outputs):
+        nn=self.options['num_nodes']
+
+        outputs['temp_diameter'] = inputs[Aircraft.Engine.Propeller.DIAMETER] * np.ones(nn)
+        outputs['temp_pitch'] = inputs[Aircraft.Engine.Propeller.PITCH] * np.ones(nn)
+
+class RangeClamp(om.ExplicitComponent):
+    """
+    Clamp an input to [lower, upper].
+
+    Used to keep the inputs to the propeller surrogate (PropCoefficients, a
+    lagrange2 MetaModelSemiStructuredComp) inside its trained range. Outside that
+    range the surrogate extrapolates and can return NaN, which kills the whole
+    nonlinear solve. The optimizer (and intermediate solver iterates) can drive RPM
+    out of range, so clamping the lookup makes the model evaluable everywhere. The
+    actual (unclamped) RPM is still used by Propeller for the thrust formula; only
+    the ct/cp *lookup* sees the clamped value. The clamp gradient is 1 inside the
+    range and 0 at the rails, so normal operation (well inside the range) is
+    unaffected.
+    """
+
+    def initialize(self):
+        self.options.declare('num_nodes', default=1, types=int)
+        self.options.declare('lower', types=float)
+        self.options.declare('upper', types=float)
+        self.options.declare('units', default=None, types=(str, type(None)))
+
+    def setup(self):
+        nn = self.options['num_nodes']
+        u = self.options['units']
+        self.add_input('x_in', val=np.ones(nn), units=u)
+        self.add_output('x_out', val=np.ones(nn), units=u)
+        ar = np.arange(nn)
+        self.declare_partials('x_out', 'x_in', rows=ar, cols=ar)
+
+    def compute(self, inputs, outputs):
+        outputs['x_out'] = np.clip(inputs['x_in'], self.options['lower'], self.options['upper'])
+
+    def compute_partials(self, inputs, partials):
+        x = inputs['x_in']
+        partials['x_out', 'x_in'] = (
+            (x > self.options['lower']) & (x < self.options['upper'])
+        ).astype(float)
+
+
 class PropCoefficients(om.MetaModelSemiStructuredComp):
     def initialize(self):
         self.options.declare('method', default='lagrange2', types=str)
@@ -243,7 +301,7 @@ class Propeller(om.ExplicitComponent):
         nn = self.options['num_nodes']
         num_eng = self.options[Aircraft.Engine.NUM_ENGINES]
         add_aviary_input(self, Dynamic.Atmosphere.DENSITY, val=np.zeros(nn), units = 'kg/m**3')
-        add_aviary_input(self, Aircraft.Engine.Propeller.DIAMETER, val=0.0, units = 'm')
+        add_aviary_input(self, Aircraft.Engine.Propeller.DIAMETER, val=0.4826, units = 'm')
         add_aviary_input(self, Dynamic.Vehicle.Propulsion.RPM, val=np.zeros(nn), units = 'rev/s')
         self.add_input("ct", val=np.zeros(nn), units='unitless')
         self.add_input("cp", val=np.zeros(nn), units='unitless')
@@ -364,24 +422,7 @@ class PowerImplicit(om.ImplicitComponent):
         residuals[Dynamic.Vehicle.Propulsion.CURRENT] = power_in - inputs[Dynamic.Vehicle.Propulsion.PROP_POWER]
 
 
-class Vectorization(om.ExplicitComponent):
-    def initialize(self):
-        self.options.declare('num_nodes', default=1, types=int)
-    def setup(self):
-        nn=self.options['num_nodes']
-        add_aviary_input(self, Aircraft.Engine.Propeller.DIAMETER, val=0.0, units = 'm')
-        add_aviary_input(self, Aircraft.Engine.Propeller.PITCH, val=0.0, units = 'inch')
 
-        self.add_output('temp_diameter', val=np.zeros(nn), units='m')
-        self.add_output('temp_pitch', val=np.zeros(nn), units='inch')
-
-        self.declare_partials('temp_diameter', Aircraft.Engine.Propeller.DIAMETER, val=1)
-        self.declare_partials('temp_pitch', Aircraft.Engine.Propeller.PITCH, val=1)
-    def compute(self, inputs, outputs):
-        nn=self.options['num_nodes']
-
-        outputs['temp_diameter'] = inputs[Aircraft.Engine.Propeller.DIAMETER] * np.ones(nn)
-        outputs['temp_pitch'] = inputs[Aircraft.Engine.Propeller.PITCH] * np.ones(nn)
 
 
 class RCPropGroup(om.Group):

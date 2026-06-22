@@ -49,7 +49,9 @@ class RCPropPreMission(om.Group):
         self.add_subsystem(
             'motor_resistance_calc',
             om.ExecComp(
-                'resistance = 0.0467 * idle_current ** -1.892', 
+                # maximum() floors idle_current so an out-of-bounds optimizer probe
+                # (idle_current -> 0 or negative) can't make resistance inf/NaN.
+                'resistance = 0.0467 * maximum(idle_current, 0.1) ** -1.892',
                 idle_current={'val': 0.0, 'units': 'A'},
                 resistance={'val': 0.0, 'units': 'ohm'}
             ),
@@ -61,8 +63,14 @@ class RCPropPreMission(om.Group):
         self.add_subsystem(
             'motor_kv_calc',
             om.ExecComp(
-                'kv = m * max_current / motor_mass + b',
-                kv={'val': 0.0, 'units': 'rpm/V'},
+                # Clamp the KV *output* to [250, 600] rpm/V (the realistic window for
+                # these 7 kg planes). Clamping the result -- rather than the mass input --
+                # is bulletproof: KV stays valid for ANY motor-mass probe regardless of
+                # the slope/intercept coefficients or the value of max_current, so the
+                # powertrain can never be driven into its too-slow/NaN region. The inner
+                # maximum(motor_mass, 1.0) just avoids a divide-by-zero.
+                'kv = minimum(maximum(m * max_current / maximum(motor_mass, 1.0) + b, 250.0), 600.0)',
+                kv={'val': 400.0, 'units': 'rpm/V'},
                 max_current={'val': 0.0, 'units': 'A'},
                 motor_mass={'val': 0.0, 'units': 'g'},
                 m=self.options[Aircraft.Engine.Motor.KV_EQ_SLOPE],
@@ -75,7 +83,9 @@ class RCPropPreMission(om.Group):
             promotes_outputs=[('kv', Aircraft.Engine.Motor.KV)]
         )
         
-        self.add_constraint(Aircraft.Engine.Motor.KV, upper=540, units='rpm/V')
+        # KV is now hard-clamped to [250, 600] in the ExecComp above, so an explicit
+        # optimizer constraint on it would be redundant (and degenerate when railed).
+        # self.add_constraint(Aircraft.Engine.Motor.KV, lower=250, upper=600, ref=500, units='rpm/V')
         # self.add_subsystem(
         #     'total_mass',
         #     om.ExecComp(
