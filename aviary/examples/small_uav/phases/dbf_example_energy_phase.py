@@ -10,7 +10,7 @@ phase_info = {
             'mach_initial': (0.05, 'unitless'),
             'mach_final': (0.1, 'unitless'),
             'mass_ref': (1, 'kg'),
-            'distance_initial': (0, 'ft'),
+            # 'distance_initial': (0, 'ft'), # Do not hard-fix climb initial distance.
             'distance_ref': (1.0e2, 'ft'),
             'altitude_optimize': True,
             'altitude_polynomial_order': 3,
