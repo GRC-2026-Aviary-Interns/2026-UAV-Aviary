@@ -59,9 +59,9 @@ prob.set_val(Dynamic.Mission.VELOCITY, 20, units='ft/s')
 prob.run_model()
 
 # print(f"thrust: {prob.get_val(Dynamic.Vehicle.Propulsion.THRUST, units ='N')}")
-battery_power = prob.get_val('rc_electric.battery.power', units='W')
-esc_power = prob.get_val('rc_electric.esc.power', units='W')
-motor_power = prob.get_val('rc_electric.motor.power', units='W')
-prop_power = prob.get_val(Dynamic.Vehicle.Propulsion.PROP_POWER, units='W')
+battery_power = prob.get_val('rc_electric.base.battery.power', units='W')
+esc_power = prob.get_val('rc_electric.base.esc.power', units='W')
+motor_power = prob.get_val('rc_electric.base.motor.power', units='W')
+prop_power = prob.get_val('rc_electric.base.prop_power', units='W')
 power_residual = battery_power + esc_power + motor_power - prop_power
 #print("Bat_pow W", battery_power, "Esc_Pow W", esc_power,"Motor_Pow W", motor_power, "Prop_Pow W", prop_power)
