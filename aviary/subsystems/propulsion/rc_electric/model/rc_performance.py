@@ -79,7 +79,7 @@ class ElectronicSpeedController(om.ExplicitComponent):
         self.declare_partials('efficiency', Dynamic.Vehicle.Propulsion.THROTTLE, rows=ar, cols=ar)
         self.declare_partials('voltage_out', ['voltage_in', Dynamic.Vehicle.Propulsion.THROTTLE], rows=ar, cols=ar)
         self.declare_partials('power', ['voltage_in', Dynamic.Vehicle.Propulsion.CURRENT, Dynamic.Vehicle.Propulsion.THROTTLE], rows=ar, cols=ar)
-        self.declare_partials('current_out', [Dynamic.Vehicle.Propulsion.THROTTLE, Dynamic.Vehicle.Propulsion.CURRENT], method='cs')
+        self.declare_partials('current_out', Dynamic.Vehicle.Propulsion.CURRENT, val=1.0, rows=ar, cols=ar)
     def compute(self, inputs, outputs):
         
         a = self.options['n']
@@ -235,43 +235,43 @@ class Vectorization(om.ExplicitComponent):
         outputs['temp_diameter'] = inputs[Aircraft.Engine.Propeller.DIAMETER] * np.ones(nn)
         outputs['temp_pitch'] = inputs[Aircraft.Engine.Propeller.PITCH] * np.ones(nn)
 
-class RangeClamp(om.ExplicitComponent):
-    """
-    Clamp an input to [lower, upper].
+# class RangeClamp(om.ExplicitComponent):
+#     """
+#     Clamp an input to [lower, upper].
 
-    Used to keep the inputs to the propeller surrogate (PropCoefficients, a
-    lagrange2 MetaModelSemiStructuredComp) inside its trained range. Outside that
-    range the surrogate extrapolates and can return NaN, which kills the whole
-    nonlinear solve. The optimizer (and intermediate solver iterates) can drive RPM
-    out of range, so clamping the lookup makes the model evaluable everywhere. The
-    actual (unclamped) RPM is still used by Propeller for the thrust formula; only
-    the ct/cp *lookup* sees the clamped value. The clamp gradient is 1 inside the
-    range and 0 at the rails, so normal operation (well inside the range) is
-    unaffected.
-    """
+#     Used to keep the inputs to the propeller surrogate (PropCoefficients, a
+#     lagrange2 MetaModelSemiStructuredComp) inside its trained range. Outside that
+#     range the surrogate extrapolates and can return NaN, which kills the whole
+#     nonlinear solve. The optimizer (and intermediate solver iterates) can drive RPM
+#     out of range, so clamping the lookup makes the model evaluable everywhere. The
+#     actual (unclamped) RPM is still used by Propeller for the thrust formula; only
+#     the ct/cp *lookup* sees the clamped value. The clamp gradient is 1 inside the
+#     range and 0 at the rails, so normal operation (well inside the range) is
+#     unaffected.
+#     """
 
-    def initialize(self):
-        self.options.declare('num_nodes', default=1, types=int)
-        self.options.declare('lower', types=float)
-        self.options.declare('upper', types=float)
-        self.options.declare('units', default=None, types=(str, type(None)))
+#     def initialize(self):
+#         self.options.declare('num_nodes', default=1, types=int)
+#         self.options.declare('lower', types=float)
+#         self.options.declare('upper', types=float)
+#         self.options.declare('units', default=None, types=(str, type(None)))
 
-    def setup(self):
-        nn = self.options['num_nodes']
-        u = self.options['units']
-        self.add_input('x_in', val=np.ones(nn), units=u)
-        self.add_output('x_out', val=np.ones(nn), units=u)
-        ar = np.arange(nn)
-        self.declare_partials('x_out', 'x_in', rows=ar, cols=ar)
+#     def setup(self):
+#         nn = self.options['num_nodes']
+#         u = self.options['units']
+#         self.add_input('x_in', val=np.ones(nn), units=u)
+#         self.add_output('x_out', val=np.ones(nn), units=u)
+#         ar = np.arange(nn)
+#         self.declare_partials('x_out', 'x_in', rows=ar, cols=ar)
 
-    def compute(self, inputs, outputs):
-        outputs['x_out'] = np.clip(inputs['x_in'], self.options['lower'], self.options['upper'])
+#     def compute(self, inputs, outputs):
+#         outputs['x_out'] = np.clip(inputs['x_in'], self.options['lower'], self.options['upper'])
 
-    def compute_partials(self, inputs, partials):
-        x = inputs['x_in']
-        partials['x_out', 'x_in'] = (
-            (x > self.options['lower']) & (x < self.options['upper'])
-        ).astype(float)
+#     def compute_partials(self, inputs, partials):
+#         x = inputs['x_in']
+#         partials['x_out', 'x_in'] = (
+#             (x > self.options['lower']) & (x < self.options['upper'])
+#         ).astype(float)
 
 
 class PropCoefficients(om.MetaModelSemiStructuredComp):
@@ -415,7 +415,14 @@ class PowerImplicit(om.ImplicitComponent):
 
         self.add_output(Dynamic.Vehicle.Propulsion.CURRENT, lower=np.zeros(nn), val=np.ones(nn)*30, units='A')
 
-        self.declare_partials('*', '*', method='cs')
+        # Residual depends only on the input powers, not on its own CURRENT state
+        # (that coupling is resolved at the group level), so declaring '*','*' would
+        # flag the zero (CURRENT, CURRENT) self-derivative. List the inputs explicitly.
+        self.declare_partials(
+            Dynamic.Vehicle.Propulsion.CURRENT,
+            ['power_batt', 'power_esc', 'power_motor', Dynamic.Vehicle.Propulsion.PROP_POWER],
+            method='cs',
+        )
 
     def apply_nonlinear(self, inputs, outputs, residuals):
         power_in = inputs['power_batt'] + inputs['power_esc'] + inputs['power_motor']

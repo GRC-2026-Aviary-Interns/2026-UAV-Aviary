@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 from aviary.subsystems.propulsion.rc_electric.model.rc_performance import \
-    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerImplicit, Vectorization, RangeClamp
+    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerImplicit, Vectorization
 from aviary.utils.aviary_values import AviaryValues
 from aviary.variable_info.variables import Aircraft, Dynamic
 
@@ -72,23 +72,24 @@ class RCPropMission(om.Group):
         # Clamp RPM into the propeller surrogate's trained range so out-of-range
         # operating points (which the optimizer can produce) return boundary ct/cp
         # instead of NaN. The true RPM still drives the Propeller thrust formula.
-        self.add_subsystem(
-            'rpm_clamp',
-            RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
-            promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM)],
-        )
+        # self.add_subsystem(
+        #     'rpm_clamp',
+        #     RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
+        #     promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM)],
+        # )
 
         self.add_subsystem(
             'propco',
             PropCoefficients(method='lagrange2', extrapolate=True, training_data_gradients=True, vec_size=nn),
             promotes_inputs=[
                 Dynamic.Mission.VELOCITY,
+                Dynamic.Vehicle.Propulsion.RPM,
                 'temp_diameter',
                 'temp_pitch',
             ],
             promotes_outputs=['ct', 'cp']
         )
-        self.connect('rpm_clamp.x_out', 'propco.' + Dynamic.Vehicle.Propulsion.RPM)
+        # self.connect('rpm_clamp.x_out', 'propco.' + Dynamic.Vehicle.Propulsion.RPM)
 
         self.add_subsystem(
             'prop', 
@@ -176,23 +177,24 @@ class RCPropMission(om.Group):
                 ]
         )
 
-        self.add_subsystem(
-            'rpm_max_clamp',
-            RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
-            promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM_MAX)],
-        )
+        # self.add_subsystem(
+        #     'rpm_max_clamp',
+        #     RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
+        #     promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM_MAX)],
+        # )
 
         self.add_subsystem(
             'propco_max',
             PropCoefficients(method='lagrange2', extrapolate=True, training_data_gradients=True, vec_size=nn),
             promotes_inputs=[
                 Dynamic.Mission.VELOCITY,
+                (Dynamic.Vehicle.Propulsion.RPM, Dynamic.Vehicle.Propulsion.RPM_MAX),
                 'temp_diameter',
                 'temp_pitch',
             ],
             promotes_outputs=[('ct', 'ct_max'), ('cp', 'cp_max')]
         )
-        self.connect('rpm_max_clamp.x_out', 'propco_max.' + Dynamic.Vehicle.Propulsion.RPM)
+        # self.connect('rpm_max_clamp.x_out', 'propco_max.' + Dynamic.Vehicle.Propulsion.RPM)
 
         self.add_subsystem(
             'prop_max',
