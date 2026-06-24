@@ -2,7 +2,7 @@ import numpy as np
 import openmdao.api as om
 
 from aviary.subsystems.propulsion.rc_electric.model.rc_performance import \
-    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerImplicit, Vectorization
+    Battery, ElectronicSpeedController, Motor, PropCoefficients, Propeller, PowerImplicit, Vectorization, PowerResiduals
 from aviary.utils.aviary_values import AviaryValues
 from aviary.variable_info.variables import Aircraft, Dynamic
 
@@ -18,15 +18,19 @@ class RCPropMission(om.Group):
             desc='collection of Aircraft/Mission specific options',
             default=None,
         )
+        self.options.declare(
+            'power_balance_mode', default = 'feedforward', values = ['feedforward', 'solver'], desc = 'Choose between feedforward or solver power balance')
+        
         self.name = 'rcpropulsion_mission'
 
     def setup(self):
         nn = self.options['num_nodes']
 
-        # Full throttle (=1.0) drives the max-thrust chain below.
+        user_feedforward = self.options['power_balance_mode'] == 'feedforward'
+
+        
         self.set_input_defaults('full_throttle', val=np.ones(nn), units='unitless')
-        # Provide a single promoted default for battery voltage so promoted inputs
-        # from battery, battery_max, and electric_power are not ambiguous at setup.
+        
         self.set_input_defaults(Aircraft.Battery.VOLTAGE, val=22.2, units='V')
 
         self.add_subsystem(
@@ -69,14 +73,7 @@ class RCPropMission(om.Group):
             promotes_outputs=['temp_diameter', 'temp_pitch']
             )
 
-        # Clamp RPM into the propeller surrogate's trained range so out-of-range
-        # operating points (which the optimizer can produce) return boundary ct/cp
-        # instead of NaN. The true RPM still drives the Propeller thrust formula.
-        # self.add_subsystem(
-        #     'rpm_clamp',
-        #     RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
-        #     promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM)],
-        # )
+        
 
         self.add_subsystem(
             'propco',
@@ -89,7 +86,7 @@ class RCPropMission(om.Group):
             ],
             promotes_outputs=['ct', 'cp']
         )
-        # self.connect('rpm_clamp.x_out', 'propco.' + Dynamic.Vehicle.Propulsion.RPM)
+       
 
         self.add_subsystem(
             'prop', 
@@ -109,21 +106,32 @@ class RCPropMission(om.Group):
                 ]
         )
 
-        self.add_subsystem(
-            'power_net',
-            PowerImplicit(num_nodes=nn),
-            promotes_inputs=[
-                Dynamic.Vehicle.Propulsion.PROP_POWER,
-            ],
-            promotes_outputs=[
-                Dynamic.Vehicle.Propulsion.CURRENT,
-            ]
-        )
 
-        # Electrical power drawn from the battery (= open-circuit voltage * current).
-        # This is the rate the battery energy depletes, so endurance = energy / power.
-        # Promoting it as ELECTRIC_POWER_IN lets PropulsionSum roll it up into
-        # ELECTRIC_POWER_IN_TOTAL (already a phase timeseries output).
+        if user_feedforward:
+            self.add_subsystem(
+                'power_net',
+                PowerResiduals(num_nodes=nn),
+                promotes_inputs=[
+                    Dynamic.Vehicle.Propulsion.PROP_POWER,
+                ],
+                promotes_outputs=[
+                    'power_net',
+                ]
+            )
+        else:
+            self.add_subsystem(
+                'power_net',
+                PowerImplicit(num_nodes=nn),
+                promotes_inputs=[
+                    Dynamic.Vehicle.Propulsion.PROP_POWER,
+                ],
+                promotes_outputs=[
+                    Dynamic.Vehicle.Propulsion.CURRENT,
+                ]
+            )
+        
+
+       
         self.add_subsystem(
             'electric_power',
             om.ExecComp(
@@ -177,11 +185,7 @@ class RCPropMission(om.Group):
                 ]
         )
 
-        # self.add_subsystem(
-        #     'rpm_max_clamp',
-        #     RangeClamp(num_nodes=nn, lower=16.7, upper=183.3, units='rev/s'),
-        #     promotes_inputs=[('x_in', Dynamic.Vehicle.Propulsion.RPM_MAX)],
-        # )
+       
 
         self.add_subsystem(
             'propco_max',
@@ -194,8 +198,7 @@ class RCPropMission(om.Group):
             ],
             promotes_outputs=[('ct', 'ct_max'), ('cp', 'cp_max')]
         )
-        # self.connect('rpm_max_clamp.x_out', 'propco_max.' + Dynamic.Vehicle.Propulsion.RPM)
-
+        
         self.add_subsystem(
             'prop_max',
             Propeller(num_nodes=nn),
@@ -212,16 +215,28 @@ class RCPropMission(om.Group):
                 ]
         )
 
-        self.add_subsystem(
-            'power_net_max',
-            PowerImplicit(num_nodes=nn),
-            promotes_inputs=[
-                (Dynamic.Vehicle.Propulsion.PROP_POWER, Dynamic.Vehicle.Propulsion.PROP_POWER_MAX),
-            ],
-            promotes_outputs=[
-                (Dynamic.Vehicle.Propulsion.CURRENT, Dynamic.Vehicle.Propulsion.CURRENT_MAX),
-            ]
-        )
+        if user_feedforward:
+            self.add_subsystem(
+                'power_net_max',
+                PowerResiduals(num_nodes=nn),
+                promotes_inputs=[
+                    (Dynamic.Vehicle.Propulsion.PROP_POWER, Dynamic.Vehicle.Propulsion.PROP_POWER_MAX),
+                ],
+                promotes_outputs=[
+                    ('power_net','power_net_max'),
+                ]
+            )
+        else:
+            self.add_subsystem(
+                'power_net_max',
+                PowerImplicit(num_nodes=nn),
+                promotes_inputs=[
+                    (Dynamic.Vehicle.Propulsion.PROP_POWER, Dynamic.Vehicle.Propulsion.PROP_POWER_MAX),
+                ],
+                promotes_outputs=[
+                    (Dynamic.Vehicle.Propulsion.CURRENT, Dynamic.Vehicle.Propulsion.CURRENT_MAX),
+                ]
+            )
 
         self.connect('battery.voltage_out', 'esc.voltage_in')
         self.connect('esc.voltage_out', 'motor.voltage_in')
@@ -232,13 +247,7 @@ class RCPropMission(om.Group):
         self.connect('esc_max.current_out', 'motor_max.current')
         #TODO Alex from phase builder base import add_control
 
-        #self.add_constraint('current_constraint', upper=0, ref=1e2)
-        #self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=1, upper=125, ref=1e3, units='rps')
-
-        #Constraints to prevent ill-fated surrogate model predictions
-        # self.add_constraint('ct_max', lower=0, upper=0.12, ref=1.0, units='unitless')
-        # self.add_constraint('cp_max', lower=0.0034, upper=0.08, ref=1.0, units='unitless')
-
+       
         self.connect('battery.power', 'power_net.power_batt')
         self.connect('esc.power', 'power_net.power_esc')
         self.connect('motor.power', 'power_net.power_motor')
@@ -247,17 +256,32 @@ class RCPropMission(om.Group):
         self.connect('esc_max.power', 'power_net_max.power_esc')
         self.connect('motor_max.power', 'power_net_max.power_motor')
 
+
+
+
+
+        if user_feedforward:
+            self.add_constraint('power_net', equals=0, ref=1e2)
+            self.add_constraint('power_net_max', equals=0, ref=1e2)
+            
+            self.add_constraint('current_constraint_max', upper=0, ref=1e2)
+            self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=1, upper=125, ref=1e3, units='rps')
+
+            #Constraints to prevent ill-fated surrogate model predictions
+            self.add_constraint('ct_max', lower=0, upper=0.12, ref=1.0, units='unitless')
+            self.add_constraint('cp_max', lower=0.0034, upper=0.08, ref=1.0, units='unitless')
+        else:
         # NonlinearBlockGS (fixed-point) is used rather than Newton+DirectSolver
         # because the propeller metamodel (PropCoefficients) has flat / extrapolated
         # regions with zero gradient. A DirectSolver factorization of the
         # battery<->esc<->motor<->prop<->power_net current cycle goes singular there,
         # whereas this fixed-point iteration tolerates it.
-        self.nonlinear_solver = om.NonlinearBlockGS()
-        self.nonlinear_solver.options["maxiter"] = 40
-        self.nonlinear_solver.options["use_aitken"] = True
-        self.nonlinear_solver.options["err_on_non_converge"] = False
+            self.nonlinear_solver = om.NonlinearBlockGS()
+            self.nonlinear_solver.options["maxiter"] = 40
+            self.nonlinear_solver.options["use_aitken"] = True
+            self.nonlinear_solver.options["err_on_non_converge"] = False
 
-        self.linear_solver = om.LinearBlockGS()
+            self.linear_solver = om.LinearBlockGS()
 
         self.options['auto_order'] = True
 

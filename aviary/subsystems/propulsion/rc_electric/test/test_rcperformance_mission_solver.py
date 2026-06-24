@@ -19,7 +19,7 @@ class TestRCPropMission(unittest.TestCase):
         prob = om.Problem()
         options = AviaryValues()
         options.set_val(Aircraft.Engine.NUM_ENGINES, 1)
-        prob.model.add_subsystem('rc_prop_group', RCPropMission(num_nodes=nn, aviary_options= options), promotes=['*'])
+        prob.model.add_subsystem('rc_prop_group', RCPropMission(num_nodes=nn, aviary_options= options, power_balance_mode='solver'), promotes=['*'])
 
         # Solve the implicit current balance with Newton for this residual test.
         prob.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)

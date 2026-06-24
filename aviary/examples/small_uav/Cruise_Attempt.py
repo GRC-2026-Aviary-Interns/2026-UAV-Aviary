@@ -10,6 +10,7 @@ from aviary.subsystems.propulsion.rc_electric.rc_builder import RCBuilder
 
 
 # Builders
+# defaults to feedforward power balance; change to power_balance_mode='solver' for solver-based power balance
 rc_prop = RCBuilder()
 
 phase_info = deepcopy(phase_info)
@@ -89,8 +90,8 @@ prob.options['group_by_pre_opt_post'] = True
 prob.load_inputs(
     'validation_cases/validation_data/test_models/small_scale_uav.csv',
     phase_info,
-    engine_builders=[rc_prop],
 )
+prob.load_external_subsystems(external_subsystems=[rc_prop])
 
 print("Loaded gross mass kg:",
       prob.aviary_inputs.get_val('mission:design:gross_mass', units='kg'))

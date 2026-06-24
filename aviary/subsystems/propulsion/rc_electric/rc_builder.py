@@ -1,4 +1,4 @@
-from aviary.subsystems.propulsion.rc_electric.model.rcpropulsion_premission import RCPropPreMission
+# from aviary.subsystems.propulsion.rc_electric.model.rcpropulsion_premission import RCPropPreMission
 from aviary.subsystems.propulsion.rc_electric.model.rcpropulsion_mission import RCPropMission
 from aviary.utils.aviary_values import AviaryValues
 from aviary.subsystems.propulsion.engine_model import EngineModel
@@ -7,18 +7,21 @@ from aviary.subsystems.subsystem_builder import SubsystemBuilder as SubsystemBui
 from aviary.variable_info.variables import Aircraft, Dynamic, Mission
 
 class RCBuilder(EngineModel):
-    def __init__(self, options: AviaryValues = None, name='rc_electric'):
+    def __init__(self, options: AviaryValues = None, name='rc_electric', power_balance_mode='feedforward'):
         """Initializes the PropellerBuilder object with a given name."""
         # aviary_inputs = AviaryValues()
         super().__init__(name, options)
 
-    def build_pre_mission(self, aviary_inputs, **kwargs):  # m, b,
-        """Builds an OpenMDAO system for the pre-mission computations of the subsystem."""
-        return RCPropPreMission(aviary_options=self.options)
+        self.power_balance_mode = power_balance_mode
+    # def build_pre_mission(self, aviary_inputs, **kwargs):  # m, b,
+    #     """Builds an OpenMDAO system for the pre-mission computations of the subsystem."""
+    #     return RCPropPreMission(aviary_options=self.options)
 
     def build_mission(self, num_nodes, aviary_inputs, **kwargs):
         """Builds an OpenMDAO system for the mission computations of the subsystem."""
-        return RCPropMission(num_nodes=num_nodes, aviary_options=self.options)
+
+
+        return RCPropMission(num_nodes=num_nodes, aviary_options=self.options, power_balance_mode=self.power_balance_mode)
     # def get_constraints(self):
     #     constraints = {
     #         Dynamic.Vehicle.Propulsion.CURRENT: {
@@ -33,7 +36,7 @@ class RCBuilder(EngineModel):
 
     #     return constraints
 
-    def get_design_vars(self):
+    def get_design_vars(self, aviary_inputs=None, user_options=None, subsystem_options=None, phase_info=None):
         """
         Design vars are only tested to see if they exist in pre_mission
         Returns a dictionary of design variables for the gearbox subsystem, where the keys are the
@@ -65,16 +68,10 @@ class RCBuilder(EngineModel):
             # current/mass ratio, so freeing both makes KV impossible to bound cleanly).
             # With KV = 2105.54*max_current/motor_mass - 80.83, a realistic KV of 250-600
             # corresponds to a motor mass of ~0.31-0.64 kg -- comfortably under 1 kg, as
-            # expected for these 7 kg planes. KV itself is hard-clamped to [250, 600] in
-            # the premission, so any out-of-range mass probe still yields a valid KV;
-            # these bounds just keep the optimizer in the realistic motor-mass range.
+            # expected for these 7 kg planes.
+        
             Aircraft.Engine.Motor.MASS: {
-                # Native units of this var are lbm. Declaring the DV in kg made the
-                # pyOptSparse driver mis-convert by (lbm/kg)^2 -- it showed 2.187 for a
-                # 0.45 kg model value and the [0.25,0.65] kg bound never bit -- because
-                # motor:mass is consumed in mixed units (grams in the KV calc, kg in DBF).
-                # Declaring in native lbm makes the DV<->model map an identity.
-                # Bounds are [0.25, 0.65] kg expressed in lbm.
+               
                 'units': 'lbm',
                 'lower': 0.5512,   # 0.25 kg
                 'upper': 1.4330,   # 0.65 kg
@@ -95,7 +92,7 @@ class RCBuilder(EngineModel):
         }
         return DVs
 
-    def get_parameters(self, aviary_inputs=None, phase_info=None):
+    def get_parameters(self, aviary_inputs=None, user_options=None, subsystem_options=None, phase_info=None):
         """
         Parameters are only tested to see if they exist in mission.
         The value doesn't change throughout the mission.
@@ -148,29 +145,34 @@ class RCBuilder(EngineModel):
 
         return parameters
 
-    def get_controls(self, phase_name=None):
-        # controls_dict = {
-        #     Dynamic.Vehicle.Propulsion.CURRENT: {
-        #         'targets': Dynamic.Vehicle.Propulsion.CURRENT,
-        #         'units': 'A',
-        #         'opt': True,
-        #         'lower': 10.0,
-        #         'ref': 1.0e2,
-        #     },
-        #     Dynamic.Vehicle.Propulsion.CURRENT_MAX: {
-        #         'targets': Dynamic.Vehicle.Propulsion.CURRENT_MAX,
-        #         'units': 'A',
-        #         'opt': True,
-        #         'lower': 10.0,
-        #         'ref': 1.0e2,
-        #     },
-        # }
-        return {}
-    def get_mass_names(self):
+    def get_controls(self, aviary_inputs = None, user_options = None, subsystem_options = None, phase_name=None):
+
+        if self.power_balance_mode == 'feedforward':
+           return{}
+        return{
+            Dynamic.Vehicle.Propulsion.CURRENT: {
+                'targets': Dynamic.Vehicle.Propulsion.CURRENT,
+                'units': 'A',
+                'opt': True,
+                'lower': 10.0,
+                'ref': 1.0e2,
+            },
+            Dynamic.Vehicle.Propulsion.CURRENT_MAX: {
+                'targets': Dynamic.Vehicle.Propulsion.CURRENT_MAX,
+                'units': 'A',
+                'opt': True,
+                'lower': 10.0,
+                'ref': 1.0e2,
+            },
+        
+        }
+        
+       
+    def get_mass_names(self, aviary_inputs=None, user_options=None, subsystem_options=None, phase_info=None):
         return [Aircraft.Battery.MASS, Aircraft.Engine.Motor.MASS]#, Aircraft.Engine.MASS]
     
     #TODO add new outputs
-    def mission_outputs(self):
+    def mission_outputs(self, aviary_inputs=None, user_options=None, subsystem_options=None, phase_info=None):
         return [
             #TODO: Alex see why this is an issue 
             # Dynamic.Vehicle.Propulsion.THROTTLE,
