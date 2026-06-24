@@ -4,7 +4,7 @@ import openmdao.api as om
 
 from aviary.mission.ode.specific_energy_rate import SpecificEnergyRate
 from aviary.utils.test_utils.variable_test import assert_match_varnames
-from aviary.validation_cases.validation_data.flops_data.full_mission_test_data import data
+from aviary.validation_cases.validation_data.test_data.full_mission_test_data import data
 from aviary.validation_cases.validation_tests import do_validation_test
 from aviary.variable_info.variables import Dynamic
 
@@ -26,8 +26,8 @@ class SpecificEnergyRateTest(unittest.TestCase):
 
     def test_case1(self):
         do_validation_test(
+            self,
             self.prob,
-            'full_mission_test_data',
             input_validation_data=data,
             output_validation_data=data,
             input_keys=[

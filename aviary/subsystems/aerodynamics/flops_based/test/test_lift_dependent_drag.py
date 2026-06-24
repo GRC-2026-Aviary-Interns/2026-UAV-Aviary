@@ -3,11 +3,13 @@ import unittest
 import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 
 from aviary.subsystems.aerodynamics.flops_based.lift_dependent_drag import LiftDependentDrag
 from aviary.variable_info.variables import Aircraft, Dynamic, Mission
 
 
+@use_tempdirs
 class LiftDependentDragTest(unittest.TestCase):
     def test_derivs_edge_interp(self):
         # Pressure in lbf/in**2 at 41000 ft.
@@ -34,8 +36,8 @@ class LiftDependentDragTest(unittest.TestCase):
         prob.set_val(Aircraft.Wing.ASPECT_RATIO, val=11.05)
 
         prob.set_val(Aircraft.Wing.THICKNESS_TO_CHORD, val=0.123)
-        prob.set_val(Mission.Design.LIFT_COEFFICIENT, val=1.28)
-        prob.set_val(Mission.Design.MACH, val=0.765)
+        prob.set_val(Aircraft.Design.LIFT_COEFFICIENT, val=1.28)
+        prob.set_val(Aircraft.Design.MACH, val=0.765)
 
         prob.run_model()
 
@@ -43,7 +45,7 @@ class LiftDependentDragTest(unittest.TestCase):
         assert_check_partials(derivs, atol=1e-12, rtol=1e-12)
 
         assert_near_equal(
-            prob.get_val('CD'),
+            prob.get_val('pressure_drag_coeff'),
             [0.01445345, 0.01278088, 0.01124887, 0.00982434, 0.00844742, 0.0],
             1e-6,
         )
@@ -73,8 +75,8 @@ class LiftDependentDragTest(unittest.TestCase):
         prob.set_val(Aircraft.Wing.ASPECT_RATIO, val=11.05 * 0.5)
 
         prob.set_val(Aircraft.Wing.THICKNESS_TO_CHORD, val=0.132)
-        prob.set_val(Mission.Design.LIFT_COEFFICIENT, val=0.1234)
-        prob.set_val(Mission.Design.MACH, val=0.4321)
+        prob.set_val(Aircraft.Design.LIFT_COEFFICIENT, val=0.1234)
+        prob.set_val(Aircraft.Design.MACH, val=0.4321)
 
         prob.run_model()
 
@@ -82,7 +84,7 @@ class LiftDependentDragTest(unittest.TestCase):
         assert_check_partials(derivs, atol=1e-12, rtol=1e-12)
 
         assert_near_equal(
-            prob.get_val('CD'),
+            prob.get_val('pressure_drag_coeff'),
             [0.01333307, 0.02305564, 0.0465636, 0.51400999, 0.79391369, 0.82316212],
             1e-6,
         )

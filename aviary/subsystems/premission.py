@@ -4,13 +4,16 @@ from packaging import version
 
 from aviary.utils.aviary_values import AviaryValues
 from aviary.variable_info.functions import override_aviary_vars
-from aviary.variable_info.variable_meta_data import _MetaData
+from aviary.variable_info.variable_meta_data import CoreMetaData
 
 use_new_openmdao_syntax = version.parse(openmdao.__version__) >= version.parse('3.28')
 
 
 class CorePreMission(om.Group):
-    """Group that contains all pre-mission groups of core Aviary subsystems (geometry, mass, propulsion, aerodynamics)."""
+    """
+    Group that contains all pre-mission groups of core Aviary subsystems (geometry, mass,
+    propulsion, aerodynamics).
+    """
 
     def initialize(self):
         self.options.declare(
@@ -18,15 +21,20 @@ class CorePreMission(om.Group):
             types=AviaryValues,
             desc='collection of Aircraft/Mission specific options',
         )
-        self.options.declare('subsystems', desc='list of core subsystem builders')
-        self.options.declare('meta_data', desc='problem metadata', default=_MetaData)
+        self.options.declare('subsystems', desc='list of subsystem builders')
+        self.options.declare(
+            'subsystem_options',
+            desc='dictionary containing all options for the subsystems in premission',
+        )
+        self.options.declare('meta_data', desc='problem metadata', default=CoreMetaData)
+
         # NOTE this flag is only needed for tests - in AviaryProblem it should always be False
         self.options.declare(
             'process_overrides',
             types=bool,
             default=True,
-            desc='When True, overrides are handled here, otherwise, '
-            'they are handled in the parent system.',
+            desc='When True, overrides are handled here, otherwise, they are handled in the parent '
+            'system.',
         )
 
     def setup(self, **kwargs):
@@ -35,29 +43,38 @@ class CorePreMission(om.Group):
             self.options['auto_order'] = True
 
         aviary_options = self.options['aviary_options']
-        core_subsystems = self.options['subsystems']
+        subsystems = self.options['subsystems']
+        all_subsystem_options = self.options['subsystem_options']
 
-        for subsystem in core_subsystems:
-            pre_mission_system = subsystem.build_pre_mission(aviary_options)
+        for subsystem in subsystems:
+            name = subsystem.name
+            subsystem_options = all_subsystem_options.get(name, {})
+
+            pre_mission_system = subsystem.build_pre_mission(
+                aviary_options, subsystem_options=subsystem_options
+            )
+
             if pre_mission_system is not None:
                 self.add_subsystem(
-                    subsystem.name,
+                    name,
                     pre_mission_system,
                     promotes_inputs=['*'],
                     promotes_outputs=['*'],
                 )
 
     def configure(self):
-        self.manual_overrides = []
+        self.code_origin_overrides = []
         for subsystem in self.options['subsystems']:
             try:
-                self.manual_overrides.extend(
-                    getattr(getattr(self, subsystem.name), 'manual_overrides')
+                self.code_origin_overrides.extend(
+                    getattr(getattr(self, subsystem.name), 'code_origin_overrides')
                 )
             except:
                 continue
 
         if self.options['process_overrides']:
             override_aviary_vars(
-                self, self.options['aviary_options'], manual_overrides=self.manual_overrides
+                self,
+                self.options['aviary_options'],
+                code_origin_overrides=self.code_origin_overrides,
             )

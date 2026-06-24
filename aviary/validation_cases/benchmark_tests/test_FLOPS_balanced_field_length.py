@@ -10,13 +10,13 @@ from openmdao.core.driver import Driver
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import require_pyoptsparse, use_tempdirs
 
-from aviary.models.aircraft.advanced_single_aisle.advanced_single_aisle_data import (
+from aviary.validation_cases.validation_data.test_data.advanced_single_aisle_data import (
     balanced_liftoff_user_options as _takeoff_liftoff_user_options,
 )
-from aviary.models.aircraft.advanced_single_aisle.advanced_single_aisle_data import (
+from aviary.validation_cases.validation_data.test_data.advanced_single_aisle_data import (
     balanced_trajectory_builder as _takeoff_trajectory_builder,
 )
-from aviary.models.aircraft.advanced_single_aisle.advanced_single_aisle_data import (
+from aviary.validation_cases.validation_data.test_data.advanced_single_aisle_data import (
     inputs as _inputs,
 )
 from aviary.subsystems.premission import CorePreMission
@@ -85,9 +85,10 @@ class TestFLOPSBalancedFieldLength(unittest.TestCase):
             CorePreMission(
                 aviary_options=aviary_options,
                 subsystems=default_mission_subsystems,
+                subsystem_options={},
             ),
             promotes_inputs=['aircraft:*'],
-            promotes_outputs=['aircraft:*', 'mission:*'],
+            promotes_outputs=['aircraft:*'],
         )
 
         # Instantiate the trajectory and add the phases
@@ -122,7 +123,9 @@ class TestFLOPSBalancedFieldLength(unittest.TestCase):
         takeoff_trajectory_builder.apply_initial_guesses(takeoff, 'traj')
 
         # run the problem
-        dm.run_problem(takeoff, run_driver=True, simulate=True, make_plots=False)
+        takeoff.result = dm.run_problem(takeoff, run_driver=True, simulate=True, make_plots=False)
+
+        self.assertTrue(takeoff.result.success)
 
         # takeoff.model.traj.phases.brake_release_to_decision_speed.list_inputs(print_arrays=True)
         # takeoff.model.list_outputs(print_arrays=True)
@@ -153,7 +156,7 @@ class TestFLOPSBalancedFieldLength(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    use_SNOPT = True
+    use_SNOPT = False
 
     z = TestFLOPSBalancedFieldLength()
 

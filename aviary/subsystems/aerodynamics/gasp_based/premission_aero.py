@@ -7,20 +7,28 @@ the dynamic aero.
 import openmdao.api as om
 
 from aviary.subsystems.aerodynamics.gasp_based.flaps_model import FlapsGroup
-from aviary.subsystems.aerodynamics.gasp_based.gasp_aero_coeffs import AeroFormfactors
+from aviary.subsystems.aerodynamics.gasp_based.flaps_model.basic_calculations import (
+    BasicFlapsGeometry,
+)
+from aviary.subsystems.aerodynamics.gasp_based.gasp_aero_coeffs import (
+    AeroFormfactors,
+    FormFactor,
+    BWBFormFactor,
+)
 from aviary.subsystems.aerodynamics.gasp_based.interference import (
     WingFuselageInterferencePremission,
 )
 from aviary.subsystems.atmosphere.atmosphere import Atmosphere
-from aviary.variable_info.enums import SpeedType
+from aviary.variable_info.enums import AircraftTypes, SpeedType
+from aviary.variable_info.functions import add_aviary_option
 from aviary.variable_info.variables import Aircraft, Dynamic, Mission
-
-# TODO: add subsystems to compute CLMXFU, CLMXTO, CLMXLD using dynamic aero components
-# with alpha > alpha_stall
 
 
 class PreMissionAero(om.Group):
     """Takeoff and landing flaps modeling."""
+
+    def initialize(self):
+        add_aviary_option(self, Aircraft.Design.TYPE)
 
     def setup(self):
         self.add_subsystem(
@@ -40,11 +48,30 @@ class PreMissionAero(om.Group):
             promotes_outputs=['*'],
         )
 
+        design_type = self.options[Aircraft.Design.TYPE]
+        if design_type is AircraftTypes.TRANSPORT:
+            self.add_subsystem(
+                'aero_form_factors2',
+                FormFactor(),
+                promotes_inputs=['*'],
+                promotes_outputs=['*'],
+            )
+        else:
+            self.add_subsystem(
+                'aero_form_factors2',
+                BWBFormFactor(),
+                promotes_inputs=['*'],
+                promotes_outputs=['*'],
+            )
+
         # speeds weren't originally computed here, speedtype of Mach is intended
         # to avoid multiple sources for computed Mach (gets calculated somewhere upstream)
         self.add_subsystem(
             name='atmosphere',
-            subsys=Atmosphere(num_nodes=1, input_speed_type=SpeedType.MACH),
+            subsys=Atmosphere(
+                num_nodes=1,
+                input_speed_type=SpeedType.MACH,
+            ),
             promotes=['*', (Dynamic.Mission.ALTITUDE, 'alt_flaps')],
         )
 
@@ -57,28 +84,52 @@ class PreMissionAero(om.Group):
                 kinematic_viscosity={'units': 'ft**2/s'},
             ),
             promotes=[
-                'viscosity',
+                ('viscosity', Dynamic.Atmosphere.DYNAMIC_VISCOSITY),
                 ('kinematic_viscosity', Dynamic.Atmosphere.KINEMATIC_VISCOSITY),
                 ('rho', Dynamic.Atmosphere.DENSITY),
             ],
         )
 
+        # Flaps geometry
+        # should this be moved to geometry? See issue #1086
+        self.add_subsystem(
+            'BasicFlapsGeometry',
+            BasicFlapsGeometry(),
+            promotes_inputs=['aircraft:*'],
+            promotes_outputs=['*'],
+        )
+
+        flaps_promotes = [
+            'aircraft:*',
+            Dynamic.Atmosphere.KINEMATIC_VISCOSITY,
+            Dynamic.Atmosphere.SPEED_OF_SOUND,
+            Dynamic.Atmosphere.STATIC_PRESSURE,
+            Dynamic.Atmosphere.TEMPERATURE,
+            'VDEL4',
+            'VDEL5',
+            'VLAM8',
+            'VLAM9',
+            'VLAM12',
+            'chord_to_body_ratio',
+            'body_to_span_ratio',
+        ]
+
         self.add_subsystem(
             'flaps_up',
             FlapsGroup(),
-            promotes_inputs=[
-                '*',
+            promotes_inputs=flaps_promotes
+            + [
                 ('flap_defl', 'flap_defl_up'),
                 ('slat_defl', 'slat_defl_up'),
             ],
-            promotes_outputs=[('CL_max', Mission.Design.LIFT_COEFFICIENT_MAX_FLAPS_UP)],
+            promotes_outputs=[('CL_max', Aircraft.Design.LIFT_COEFFICIENT_MAX_FLAPS_UP)],
         )
         self.add_subsystem(
             'flaps_takeoff',
             FlapsGroup(),
             # slat deflection same for takeoff and landing
-            promotes_inputs=[
-                '*',
+            promotes_inputs=flaps_promotes
+            + [
                 ('flap_defl', Aircraft.Wing.FLAP_DEFLECTION_TAKEOFF),
                 ('slat_defl', Aircraft.Wing.MAX_SLAT_DEFLECTION_TAKEOFF),
             ],
@@ -97,8 +148,8 @@ class PreMissionAero(om.Group):
         self.add_subsystem(
             'flaps_landing',
             FlapsGroup(),
-            promotes_inputs=[
-                '*',
+            promotes_inputs=flaps_promotes
+            + [
                 ('flap_defl', Aircraft.Wing.FLAP_DEFLECTION_LANDING),
                 ('slat_defl', Aircraft.Wing.MAX_SLAT_DEFLECTION_LANDING),
             ],
@@ -119,3 +170,12 @@ class PreMissionAero(om.Group):
         self.set_input_defaults('flap_defl_up', 0)
         self.set_input_defaults('slat_defl_up', 0)
         self.set_input_defaults(Aircraft.Wing.SWEEP, units='deg')
+
+    def configure(self):
+        # set default trailing edge deflection angle per GASP
+        flap = self.flaps_up
+        self.set_input_defaults(
+            Aircraft.Wing.OPTIMUM_FLAP_DEFLECTION,
+            flap.optimum_flap_defls[flap.options[Aircraft.Wing.FLAP_TYPE]],
+            units='deg',
+        )

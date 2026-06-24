@@ -64,8 +64,10 @@ class NacelleMass(om.ExplicitComponent):
         avg_length = inputs[Aircraft.Nacelle.AVG_LENGTH]
         scaler = inputs[Aircraft.Nacelle.MASS_SCALER]
 
-        count_factor = nacelle_count_factor(num_eng)
-        # TODO: This should be distributed thrust factor
+        # Original FLOPS nacelle equation was mass of all nacelles - here we average it to nacelle
+        # mass per individual engine
+        count_factor = nacelle_count_factor(num_eng) / num_eng
+        # This should be distributed thrust factor, see issue #1096.
         thrust = inputs[Aircraft.Engine.SCALED_SLS_THRUST]
 
         outputs[Aircraft.Nacelle.MASS] = (
@@ -78,8 +80,8 @@ class NacelleMass(om.ExplicitComponent):
         avg_length = inputs[Aircraft.Nacelle.AVG_LENGTH]
         scaler = inputs[Aircraft.Nacelle.MASS_SCALER]
 
-        count_factor = nacelle_count_factor(num_eng)
-        # TODO: This should be distributed thrust factor
+        count_factor = nacelle_count_factor(num_eng) / num_eng
+        # This should be distributed thrust factor, see issue #1096.
         thrust = inputs[Aircraft.Engine.SCALED_SLS_THRUST]
 
         thrust_exp = thrust**0.36

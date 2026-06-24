@@ -10,13 +10,13 @@ import warnings
 
 import numpy as np
 
-from aviary.subsystems.subsystem_builder_base import SubsystemBuilderBase
+from aviary.subsystems.subsystem_builder import SubsystemBuilder
 from aviary.utils.aviary_values import AviaryValues
 from aviary.variable_info.enums import Verbosity
 from aviary.variable_info.variables import Settings
 
 
-class EngineModel(SubsystemBuilderBase):
+class EngineModel(SubsystemBuilder):
     """
     Define the interface for an engine model builder.
 
@@ -38,7 +38,11 @@ class EngineModel(SubsystemBuilderBase):
     update
     """
 
-    default_name = 'engine_model'
+    _default_name = 'engine_model'
+    # Flag that sets if this engine computes maximum values (e.g. max thrust, shaft power) for a
+    # given flight condition. If False, during mission Aviary will create a duplicate copy of the
+    # engine that is given max throttle and hybrid throttle (1.0) to compute max values.
+    compute_max_values = False
 
     def __init__(
         self, name: str = None, options: AviaryValues = None, meta_data: dict = None, **kwargs
@@ -67,7 +71,7 @@ class EngineModel(SubsystemBuilderBase):
         )
         self._preprocess_inputs()
 
-    def build_pre_mission(self, aviary_inputs, **kwargs):
+    def build_pre_mission(self, aviary_inputs, subsystem_options=None):
         """
         Build an OpenMDAO system for the pre-mission computations of the engine model,
         such as sizing.
@@ -84,7 +88,7 @@ class EngineModel(SubsystemBuilderBase):
         """
         return None
 
-    def build_mission(self, num_nodes, aviary_inputs, **kwargs):
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options):
         """
         Build an OpenMDAO system for the mission computations of the engine model.
 
@@ -104,7 +108,13 @@ class EngineModel(SubsystemBuilderBase):
             f'been implemented in EngineModel <{self.name}>'
         )
 
-    def build_post_mission(self, aviary_inputs, phase_info, phase_mission_bus_lengths, **kwargs):
+    def build_post_mission(
+        self,
+        aviary_inputs=None,
+        mission_info=None,
+        subsystem_options=None,
+        phase_mission_bus_lengths=None,
+    ):
         """
         Build an OpenMDAO system for the post-mission computations of the engine model.
 
@@ -218,25 +228,25 @@ class EngineModel(SubsystemBuilderBase):
         """
         return self.options.get_val(key, units)
 
-    def get_item(self, key, default=(None, None)):
+    def get_item(self, key):
         """
         Return the named value and its associated units.
-
-        Note, this method never raises `KeyError` or `TypeError`.
 
         Parameters
         ----------
         key : str
             the name of the item
 
-        default : OptionalValueAndUnits (None, None)
-            if the item does not exist, return this object
-
         Returns
         -------
         OptionalValueAndUnits
+
+        Raises
+        ------
+        KeyError
+            if the named value does not exist
         """
-        return self.options.get_item(key, default)
+        return self.options.get_item(key)
 
     def set_val(self, key, val, units='unitless'):
         """

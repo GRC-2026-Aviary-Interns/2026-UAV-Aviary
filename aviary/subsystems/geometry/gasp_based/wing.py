@@ -7,7 +7,7 @@ from aviary.subsystems.geometry.gasp_based.non_dimensional_conversion import (
 )
 from aviary.subsystems.geometry.gasp_based.strut import StrutGeom
 from aviary.utils.conflict_checks import check_fold_location_definition
-from aviary.utils.functions import sigmoidX, dSigmoidXdx
+from aviary.utils.math import sigmoidX, dSigmoidXdx
 from aviary.variable_info.enums import AircraftTypes, Verbosity
 from aviary.variable_info.functions import add_aviary_input, add_aviary_option, add_aviary_output
 from aviary.variable_info.variables import Aircraft, Mission, Settings
@@ -17,7 +17,7 @@ class WingSize(om.ExplicitComponent):
     """Computation of wing area and wing span for GASP-based aerodynamics."""
 
     def setup(self):
-        add_aviary_input(self, Mission.Design.GROSS_MASS, units='lbm')
+        add_aviary_input(self, Aircraft.Design.GROSS_MASS, units='lbm')
         add_aviary_input(self, Aircraft.Design.WING_LOADING, units='lbf/ft**2')
         add_aviary_input(self, Aircraft.Wing.ASPECT_RATIO, units='unitless')
 
@@ -25,19 +25,19 @@ class WingSize(om.ExplicitComponent):
         add_aviary_output(self, Aircraft.Wing.SPAN, units='ft')
 
         self.declare_partials(
-            Aircraft.Wing.AREA, [Mission.Design.GROSS_MASS, Aircraft.Design.WING_LOADING]
+            Aircraft.Wing.AREA, [Aircraft.Design.GROSS_MASS, Aircraft.Design.WING_LOADING]
         )
         self.declare_partials(
             Aircraft.Wing.SPAN,
             [
                 Aircraft.Wing.ASPECT_RATIO,
-                Mission.Design.GROSS_MASS,
+                Aircraft.Design.GROSS_MASS,
                 Aircraft.Design.WING_LOADING,
             ],
         )
 
     def compute(self, inputs, outputs):
-        gross_mass_initial = inputs[Mission.Design.GROSS_MASS]
+        gross_mass_initial = inputs[Aircraft.Design.GROSS_MASS]
         wing_loading = inputs[Aircraft.Design.WING_LOADING]
         AR = inputs[Aircraft.Wing.ASPECT_RATIO]
 
@@ -48,13 +48,13 @@ class WingSize(om.ExplicitComponent):
         outputs[Aircraft.Wing.SPAN] = wingspan
 
     def compute_partials(self, inputs, J):
-        gross_mass_initial = inputs[Mission.Design.GROSS_MASS]
+        gross_mass_initial = inputs[Aircraft.Design.GROSS_MASS]
         wing_loading = inputs[Aircraft.Design.WING_LOADING]
         AR = inputs[Aircraft.Wing.ASPECT_RATIO]
 
         wing_area = gross_mass_initial * GRAV_ENGLISH_LBM / wing_loading
 
-        J[Aircraft.Wing.AREA, Mission.Design.GROSS_MASS] = dWA_dGMT = (
+        J[Aircraft.Wing.AREA, Aircraft.Design.GROSS_MASS] = dWA_dGMT = (
             GRAV_ENGLISH_LBM / wing_loading
         )
         J[Aircraft.Wing.AREA, Aircraft.Design.WING_LOADING] = dWA_dWL = (
@@ -62,7 +62,7 @@ class WingSize(om.ExplicitComponent):
         )
 
         J[Aircraft.Wing.SPAN, Aircraft.Wing.ASPECT_RATIO] = 0.5 * wing_area**0.5 * AR ** (-0.5)
-        J[Aircraft.Wing.SPAN, Mission.Design.GROSS_MASS] = (
+        J[Aircraft.Wing.SPAN, Aircraft.Design.GROSS_MASS] = (
             0.5 * AR**0.5 * wing_area ** (-0.5) * dWA_dGMT
         )
         J[Aircraft.Wing.SPAN, Aircraft.Design.WING_LOADING] = (
@@ -1828,7 +1828,7 @@ class ExposedWing(om.ExplicitComponent):
         if design_type is AircraftTypes.BLENDED_WING_BODY:
             cabin_height = body_width * inputs[Aircraft.Fuselage.HEIGHT_TO_WIDTH_RATIO]
             b_fus = 0.5 * (body_width - cabin_height) + cabin_height * sqt
-        else:
+        elif design_type is AircraftTypes.TRANSPORT:
             b_fus = body_width * sqt
 
         wingspan = inputs[Aircraft.Wing.SPAN]
@@ -1870,7 +1870,7 @@ class ExposedWing(om.ExplicitComponent):
         if design_type is AircraftTypes.BLENDED_WING_BODY:
             cabin_height = body_width * height_to_width
             b_fus = 0.5 * (body_width - cabin_height) + cabin_height * sqt
-        else:
+        elif design_type is AircraftTypes.TRANSPORT:
             b_fus = body_width * sqt
 
         wingspan = inputs[Aircraft.Wing.SPAN]

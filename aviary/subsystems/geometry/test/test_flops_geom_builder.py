@@ -5,7 +5,7 @@ from openmdao.utils.testing_utils import use_tempdirs
 import aviary.api as av
 from aviary.subsystems.geometry.geometry_builder import CoreGeometryBuilder
 from aviary.variable_info.enums import LegacyCode
-from aviary.variable_info.variable_meta_data import _MetaData as BaseMetaData
+from aviary.variable_info.variable_meta_data import CoreMetaData
 from aviary.variable_info.variables import Aircraft
 
 FLOPS = LegacyCode.FLOPS
@@ -13,7 +13,7 @@ GASP = LegacyCode.GASP
 
 
 @use_tempdirs
-class TestFLOPSGeomBuilder(av.TestSubsystemBuilderBase):
+class TestFLOPSGeomBuilder(av.TestSubsystemBuilder):
     """
     That class inherits from TestSubsystemBuilder. So all the test functions are
     within that inherited class. The setUp() method prepares the class and is run
@@ -22,8 +22,8 @@ class TestFLOPSGeomBuilder(av.TestSubsystemBuilderBase):
 
     def setUp(self):
         self.subsystem_builder = CoreGeometryBuilder(
-            'core_geometry',
-            BaseMetaData,
+            'geometry',
+            CoreMetaData,
             code_origin=FLOPS,
             code_origin_to_prioritize=FLOPS,
         )
@@ -48,7 +48,7 @@ class TestFLOPSGeomBuilder(av.TestSubsystemBuilderBase):
         )
 
 
-class TestFLOPSGeomBuilderHybrid(av.TestSubsystemBuilderBase):
+class TestFLOPSGeomBuilderHybrid(av.TestSubsystemBuilder):
     """
     That class inherits from TestSubsystemBuilder. So all the test functions are
     within that inherited class. The setUp() method prepares the class and is run
@@ -57,8 +57,8 @@ class TestFLOPSGeomBuilderHybrid(av.TestSubsystemBuilderBase):
 
     def setUp(self):
         self.subsystem_builder = CoreGeometryBuilder(
-            'core_geometry',
-            BaseMetaData,
+            'geometry',
+            CoreMetaData,
             code_origin=(FLOPS, GASP),
             code_origin_to_prioritize=FLOPS,
         )

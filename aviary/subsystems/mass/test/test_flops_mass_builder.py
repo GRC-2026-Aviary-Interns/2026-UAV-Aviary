@@ -5,13 +5,13 @@ import numpy as np
 import aviary.api as av
 from aviary.subsystems.mass.mass_builder import CoreMassBuilder
 from aviary.variable_info.enums import LegacyCode
-from aviary.variable_info.variable_meta_data import _MetaData as BaseMetaData
+from aviary.variable_info.variable_meta_data import CoreMetaData
 from aviary.variable_info.variables import Aircraft
 
 FLOPS = LegacyCode.FLOPS
 
 
-class TestFLOPSMassBuilder(av.TestSubsystemBuilderBase):
+class TestFLOPSMassBuilder(av.TestSubsystemBuilder):
     """
     That class inherits from TestSubsystemBuilder. So all the test functions are
     within that inherited class. The setUp() method prepares the class and is run
@@ -20,7 +20,7 @@ class TestFLOPSMassBuilder(av.TestSubsystemBuilderBase):
 
     def setUp(self):
         self.subsystem_builder = CoreMassBuilder(
-            'test_core_mass', meta_data=BaseMetaData, code_origin=FLOPS
+            'test_core_mass', meta_data=CoreMetaData, code_origin=FLOPS
         )
         self.aviary_values = av.AviaryValues()
         self.aviary_values.set_val(Aircraft.Design.USE_ALT_MASS, False, units='unitless')
@@ -30,7 +30,7 @@ class TestFLOPSMassBuilder(av.TestSubsystemBuilderBase):
         )
 
 
-class TestFLOPSMassBuilderAltMass(av.TestSubsystemBuilderBase):
+class TestFLOPSMassBuilderAltMass(av.TestSubsystemBuilder):
     """
     That class inherits from TestSubsystemBuilder. So all the test functions are
     within that inherited class. The setUp() method prepares the class and is run
@@ -39,7 +39,7 @@ class TestFLOPSMassBuilderAltMass(av.TestSubsystemBuilderBase):
 
     def setUp(self):
         self.subsystem_builder = CoreMassBuilder(
-            'test_core_mass', meta_data=BaseMetaData, code_origin=FLOPS
+            'test_core_mass', meta_data=CoreMetaData, code_origin=FLOPS
         )
         self.aviary_values = av.AviaryValues()
         self.aviary_values.set_val(Aircraft.Design.USE_ALT_MASS, True, units='unitless')

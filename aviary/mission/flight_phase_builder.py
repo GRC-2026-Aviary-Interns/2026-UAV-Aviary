@@ -1,23 +1,19 @@
 import dymos as dm
 import numpy as np
 
-from aviary.mission.flops_based.ode.energy_ODE import EnergyODE
-from aviary.mission.flops_based.phases.phase_utils import (
-    add_subsystem_variables_to_phase,
-    get_initial,
-)
+from aviary.mission.energy_state.ode.energy_state_ODE import EnergyStateODE
 from aviary.mission.initial_guess_builders import (
     InitialGuessState,
     InitialGuessControl,
 )
-from aviary.mission.phase_builder_base import PhaseBuilderBase, register
+from aviary.mission.phase_builder import PhaseBuilder, register
 from aviary.utils.aviary_options_dict import AviaryOptionsDictionary
 from aviary.utils.aviary_values import AviaryValues
-from aviary.variable_info.enums import EquationsOfMotion, ThrottleAllocation
-from aviary.variable_info.variable_meta_data import _MetaData
+from aviary.variable_info.enums import EquationsOfMotion, ThrottleAllocation, Transcription
+from aviary.variable_info.variable_meta_data import CoreMetaData
 from aviary.variable_info.variables import Aircraft, Dynamic
 
-# Height Energy and Solved2DOF use this builder
+# energy-state and Solved2DOF use this builder
 
 # TODO: support/handle the following in the base class
 # - phase.set_time_options()
@@ -171,28 +167,35 @@ class FlightPhaseOptions(AviaryOptionsDictionary):
             'can be used to prevent unexpected descent during a climb phase.',
         )
 
+        self.declare(
+            name='transcription',
+            default=Transcription.COLLOCATION,
+            desc='Set the dymos transcription for the phase. Currently only Collocation and PicardShooting are supported. default = Collocation for backwards compatibility.',
+        )
+
 
 @register
-class FlightPhaseBase(PhaseBuilderBase):
+class FlightPhaseBase(PhaseBuilder):
     """
     The base class for flight phase.
 
-    This houses parts of the build_phase process that are commmon to EnergyPhase and TwoDOFPhase.
+    This houses parts of the build_phase process that are common to EnergyPhase and
+    SolvedTwoDOFPhase.
     """
 
-    __slots__ = ('external_subsystems', 'meta_data')
+    __slots__ = ('subsystems', 'meta_data')
 
     _initial_guesses_meta_data_ = {}
     default_name = 'cruise'
-    default_ode_class = EnergyODE
+    default_ode_class = EnergyStateODE
     default_options_class = FlightPhaseOptions
 
-    default_meta_data = _MetaData
+    default_meta_data = CoreMetaData
 
     def build_phase(
         self,
         aviary_options: AviaryValues = None,
-        phase_type=EquationsOfMotion.HEIGHT_ENERGY,
+        phase_type=EquationsOfMotion.ENERGY_STATE,
     ):
         """
         Return a new energy phase for analysis using these constraints.
@@ -227,22 +230,22 @@ class FlightPhaseBase(PhaseBuilderBase):
         ##############
         # Add States #
         ##############
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY:
+        if phase_type is EquationsOfMotion.ENERGY_STATE:
             rate_source = Dynamic.Vehicle.Propulsion.FUEL_FLOW_RATE_NEGATIVE_TOTAL
         else:
             rate_source = 'dmass_dr'
 
         self.add_state('mass', Dynamic.Vehicle.MASS, rate_source)
 
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY:
+        if phase_type is EquationsOfMotion.ENERGY_STATE:
             self.add_state('distance', Dynamic.Mission.DISTANCE, Dynamic.Mission.DISTANCE_RATE)
 
-        phase = add_subsystem_variables_to_phase(phase, self.name, self.external_subsystems)
+        phase = self.add_subsystem_variables_to_phase(phase, aviary_options)
 
         ################
         # Add Controls #
         ################
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY:
+        if phase_type is EquationsOfMotion.ENERGY_STATE:
             rate_targets = [Dynamic.Atmosphere.MACH_RATE]
         else:
             rate_targets = ['dmach_dr']
@@ -254,7 +257,7 @@ class FlightPhaseBase(PhaseBuilderBase):
             add_constraints=Dynamic.Atmosphere.MACH not in constraints,
         )
 
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY and not ground_roll:
+        if phase_type is EquationsOfMotion.ENERGY_STATE and not ground_roll:
             rate_targets = [Dynamic.Mission.ALTITUDE_RATE]
             rate2_targets = None
         else:
@@ -278,7 +281,7 @@ class FlightPhaseBase(PhaseBuilderBase):
         #     )
         
         # For heterogeneous-engine cases, we may have throttle allocation control.
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY and num_engine_type > 1:
+        if phase_type is EquationsOfMotion.ENERGY_STATE and num_engine_type > 1:
             allocation = user_options['throttle_allocation']
 
             # Allocation should default to an even split so that we don't start
@@ -311,53 +314,27 @@ class FlightPhaseBase(PhaseBuilderBase):
         ##################
         # Add Timeseries #
         ##################
+        phase.add_timeseries_output(Dynamic.Mission.ALTITUDE_RATE, units='ft/s')
+        phase.add_timeseries_output(Dynamic.Vehicle.DRAG, units='lbf')
         phase.add_timeseries_output(
-            Dynamic.Vehicle.Propulsion.THRUST_TOTAL,
-            output_name=Dynamic.Vehicle.Propulsion.THRUST_TOTAL,
-            units='lbf',
+            Dynamic.Vehicle.Propulsion.ELECTRIC_POWER_IN_TOTAL,
+            units='kW',
         )
-
-        phase.add_timeseries_output(
-            Dynamic.Vehicle.DRAG, output_name=Dynamic.Vehicle.DRAG, units='lbf'
-        )
-
-        if phase_type is EquationsOfMotion.HEIGHT_ENERGY:
-            phase.add_timeseries_output(
-                Dynamic.Mission.SPECIFIC_ENERGY_RATE_EXCESS,
-                output_name=Dynamic.Mission.SPECIFIC_ENERGY_RATE_EXCESS,
-                units='m/s',
-            )
-
         phase.add_timeseries_output(
             Dynamic.Vehicle.Propulsion.FUEL_FLOW_RATE_NEGATIVE_TOTAL,
-            output_name=Dynamic.Vehicle.Propulsion.FUEL_FLOW_RATE_NEGATIVE_TOTAL,
             units='lbm/h',
         )
 
-        phase.add_timeseries_output(
-            Dynamic.Vehicle.Propulsion.ELECTRIC_POWER_IN_TOTAL,
-            output_name=Dynamic.Vehicle.Propulsion.ELECTRIC_POWER_IN_TOTAL,
-            units='kW',
-        )
-
-        phase.add_timeseries_output(
-            Dynamic.Mission.ALTITUDE_RATE,
-            output_name=Dynamic.Mission.ALTITUDE_RATE,
-            units='ft/s',
-        )
+        phase.add_timeseries_output(Dynamic.Vehicle.LIFT, units='lbf')
 
         if throttle_enforcement != 'control':
-            phase.add_timeseries_output(
-                Dynamic.Vehicle.Propulsion.THROTTLE,
-                output_name=Dynamic.Vehicle.Propulsion.THROTTLE,
-                units='unitless',
-            )
+            phase.add_timeseries_output(Dynamic.Vehicle.Propulsion.THROTTLE, units='unitless')
 
-        phase.add_timeseries_output(
-            Dynamic.Mission.VELOCITY,
-            output_name=Dynamic.Mission.VELOCITY,
-            units='m/s',
-        )
+        if phase_type is EquationsOfMotion.ENERGY_STATE:
+            phase.add_timeseries_output(Dynamic.Mission.SPECIFIC_ENERGY_RATE_EXCESS, units='m/s')
+
+        phase.add_timeseries_output(Dynamic.Vehicle.Propulsion.THRUST_TOTAL, units='lbf')
+        phase.add_timeseries_output(Dynamic.Mission.VELOCITY, units='m/s')
 
         if phase_type is EquationsOfMotion.SOLVED_2DOF:
             phase.add_timeseries_output(Dynamic.Mission.FLIGHT_PATH_ANGLE)
@@ -372,10 +349,10 @@ class FlightPhaseBase(PhaseBuilderBase):
         ###################
 
         if no_descent and Dynamic.Mission.ALTITUDE_RATE not in constraints:
-            phase.add_path_constraint(Dynamic.Mission.ALTITUDE_RATE, lower=0.0)
+            phase.add_path_constraint(Dynamic.Mission.ALTITUDE_RATE, lower=0.0, ref=20.0)
 
         if no_climb and Dynamic.Mission.ALTITUDE_RATE not in constraints:
-            phase.add_path_constraint(Dynamic.Mission.ALTITUDE_RATE, upper=0.0)
+            phase.add_path_constraint(Dynamic.Mission.ALTITUDE_RATE, upper=0.0, ref=20.0)
 
         required_available_climb_rate, units = user_options['required_available_climb_rate']
 
@@ -424,23 +401,39 @@ class FlightPhaseBase(PhaseBuilderBase):
         num_segments = user_options['num_segments']
         order = user_options['order']
 
-        seg_ends, _ = dm.utils.lgl.lgl(num_segments + 1)
+        transcription_type = user_options['transcription']
 
-        transcription = dm.Radau(
-            num_segments=num_segments,
-            order=order,
-            compressed=True,
-            segment_ends=seg_ends,
-        )
+        if transcription_type == Transcription.COLLOCATION:
+            seg_ends, _ = dm.utils.lgl.lgl(num_segments + 1)
+
+            transcription = dm.Radau(
+                num_segments=num_segments,
+                order=order,
+                compressed=True,
+                segment_ends=seg_ends,
+            )
+
+        elif transcription_type == Transcription.PICARDSHOOTING:
+            nodes_per_seg = order * num_segments  # get approximately same number of nodes as radau
+            transcription = dm.PicardShooting(
+                num_segments=1, nodes_per_seg=nodes_per_seg, solve_segments='forward'
+            )
+
+        else:
+            raise UserWarning(
+                f"Unable to add dymos transcription for phase '{self.name}': transcription = '{transcription_type}' is not supported. "
+                f"Check phase_info definition for phase '{self.name}' and set transcription using variable enum"
+            )
 
         return transcription
 
     def _extra_ode_init_kwargs(self):
         """Return extra kwargs required for initializing the ODE."""
-        # TODO: support external_subsystems and meta_data in the base class
+        # TODO: support subsystems and meta_data in the base class
         return {
-            'external_subsystems': self.external_subsystems,
+            'subsystems': self.subsystems,
             'meta_data': self.meta_data,
+            'user_options': self.user_options_dict,
             'subsystem_options': self.subsystem_options,
             'throttle_enforcement': self.user_options['throttle_enforcement'],
             'throttle_allocation': self.user_options['throttle_allocation'],

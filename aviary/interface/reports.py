@@ -9,9 +9,11 @@ import pandas as pd
 from openmdao.utils.mpi import MPI
 from openmdao.utils.reports_system import register_report
 
+from aviary.core.aviary_problem import AviaryProblem
 from aviary.interface.utils import write_markdown_variable_table
 from aviary.utils.named_values import NamedValues
 from aviary.utils.utils import wrapped_convert_units
+from aviary.variable_info.enums import ProblemType
 
 
 def register_custom_reports():
@@ -30,7 +32,6 @@ def register_custom_reports():
         class_name='AviaryProblem',
         method='run_driver',
         pre_or_post='post',
-        # **kwargs
     )
 
     register_report(
@@ -61,6 +62,15 @@ def register_custom_reports():
     )
 
     register_report(
+        name='sizing_results',
+        func=sizing_results,
+        desc='Generates an output file containing all variables in a completed sizing problem',
+        class_name='AviaryProblem',
+        method='run_driver',
+        pre_or_post='post',
+    )
+
+    register_report(
         name='input_checks',
         func=input_check_report,
         desc='Generates a report on the aviary inputs',
@@ -69,8 +79,17 @@ def register_custom_reports():
         pre_or_post='post',
     )
 
+    register_report(
+        name='overridden_variables',
+        func=overridden_variables_report,
+        desc='Generates a report on the overridden variables',
+        class_name='AviaryProblem',
+        method='final_setup',
+        pre_or_post='post',
+    )
 
-def run_status(prob):
+
+def run_status(prob: AviaryProblem):
     """
     Creates a JSON file that contains high level overview of the run.
 
@@ -79,7 +98,7 @@ def run_status(prob):
     prob : AviaryProblem
         The AviaryProblem used to generate this report
     """
-    if MPI and MPI.COMM_WORLD.rank != 0:
+    if MPI and prob.comm.rank != 0:
         return
 
     reports_folder = Path(prob.get_reports_dir())
@@ -111,7 +130,24 @@ def run_status(prob):
         print(file=f)  # avoid 'no newline at end of file' message
 
 
-def subsystem_report(prob, **kwargs):
+def sizing_results(prob: AviaryProblem):
+    """
+    Creates a JSON file that contains the variable set from a sizing problem. If the ProblemType run
+    was not sizing, no file is generated.
+
+    Parameters
+    ----------
+    prob : AviaryProblem
+        The AviaryProblem used to generate this report
+    """
+    reports_folder = Path(prob.get_reports_dir())
+    report_file = reports_folder / 'sizing_results.json'
+
+    if prob.problem_type is ProblemType.SIZING:
+        prob.save_results(report_file)
+
+
+def subsystem_report(prob: AviaryProblem):
     """
     Loops through all subsystem builders in the AviaryProblem calls their write_report
     method. All generated report files are placed in the "reports/subsystem_reports" folder.
@@ -124,14 +160,25 @@ def subsystem_report(prob, **kwargs):
     reports_folder = Path(prob.get_reports_dir() / 'subsystems')
     reports_folder.mkdir(exist_ok=True)
 
-    # TODO external subsystems??
-    core_subsystems = prob.model.core_subsystems  # TODO: redo for multimissions
+    multi_mission = prob.problem_type is ProblemType.MULTI_MISSION
+    if multi_mission:
+        # See issue #1186. We need to rewrite the reports to support multimission. This may require
+        # standardizing how all attributes work in AviaryProblem (things like prob.model.get_val
+        # don't work with multi-mission but does for normal problems). End goal is to loop through
+        # each mission and get reports for each mission. Show in dashboard in nested tabs (new
+        # tab for each mission containing its own subsystems).
+        # Currently only getting reports for subsystems in first mission.
+        prob = model = next(iter(prob.aviary_groups_dict.values()))
+    else:
+        model = prob.model
 
-    for subsystem in core_subsystems.values():
-        subsystem.report(prob, reports_folder, **kwargs)
+    subsystems = model.subsystems  # See issue #1186. redo for multimissions
+
+    for subsystem in subsystems:
+        subsystem.report(prob, reports_folder)
 
 
-def mission_report(prob, **kwargs):
+def mission_report(prob: AviaryProblem, **kwargs):
     """
     Creates a basic mission summary report that is placed in the "reports" folder.
 
@@ -141,9 +188,9 @@ def mission_report(prob, **kwargs):
         The AviaryProblem used to generate this report
     """
 
-    def _get_phase_value(traj, phase, var_name, units, indices=None):
+    def _get_phase_value(model, traj, phase, var_name, units, indices=None):
         try:
-            vals = prob.get_val(
+            vals = model.get_val(
                 f'{traj}.{phase}.timeseries.{var_name}',
                 units=units,
                 indices=indices,
@@ -151,7 +198,7 @@ def mission_report(prob, **kwargs):
             )
         except KeyError:
             try:
-                vals = prob.get_val(
+                vals = model.get_val(
                     f'{traj}.{phase}.{var_name}',
                     units=units,
                     indices=indices,
@@ -159,7 +206,7 @@ def mission_report(prob, **kwargs):
                 )
             # 2DOF breguet range cruise uses time integration to track mass
             except TypeError:
-                vals = prob.get_val(
+                vals = model.get_val(
                     f'{traj}.{phase}.timeseries.time',
                     units=units,
                     indices=indices,
@@ -170,8 +217,8 @@ def mission_report(prob, **kwargs):
 
         return vals
 
-    def _get_phase_diff(traj, phase, var_name, units, indices=[0, -1]):
-        vals = _get_phase_value(traj, phase, var_name, units, indices)
+    def _get_phase_diff(model, traj, phase, var_name, units, indices=[0, -1]):
+        vals = _get_phase_value(model, traj, phase, var_name, units, indices)
 
         if vals is not None:
             diff = vals[-1] - vals[0]
@@ -184,70 +231,117 @@ def mission_report(prob, **kwargs):
     reports_folder = Path(prob.get_reports_dir())
     report_file = reports_folder / 'mission_summary.md'
 
-    # read per-phase data from trajectory
-    data = {}
-    for idx, phase in enumerate(prob.model.phase_info):  # TODO: redo for multimissions
-        # TODO for traj in trajectories, currently assuming single one named "traj"
-        # TODO delta mass and fuel consumption need to be tracked separately
-        fuel_burn = _get_phase_diff('traj', phase, 'mass', 'lbm', [-1, 0])
-        time = _get_phase_diff('traj', phase, 't', 'min')
-        range = _get_phase_diff('traj', phase, 'distance', 'nmi')
+    multi_mission = prob.problem_type == ProblemType.MULTI_MISSION
+    if multi_mission:
+        models = prob.aviary_groups_dict
+    else:
+        models = {prob._name: prob.model}
 
-        # get initial values, first in traj
-        if idx == 0:
-            initial_mass = _get_phase_value('traj', phase, 'mass', 'lbm', 0)[0]
-            initial_time = _get_phase_value('traj', phase, 't', 'min', 0)
-            initial_range = _get_phase_value('traj', phase, 'distance', 'nmi', 0)[0]
+    all_data = {}
+    all_totals = {}
+    for name, model in models.items():
+        # read per-phase data from trajectory
+        data = {}
+        for idx, phase in enumerate(model.mission_info):  # See issue #1186. redo for multimissions
+            # TODO for traj in trajectories, currently assuming single one named "traj"
+            # TODO delta mass and fuel consumption need to be tracked separately
+            fuel_burn = _get_phase_diff(model, 'traj', phase, 'mass', 'lbm', [-1, 0])
+            time = _get_phase_diff(model, 'traj', phase, 'time', 'min')
+            range = _get_phase_diff(model, 'traj', phase, 'distance', 'nmi')
 
-        outputs = NamedValues()
-        # Fuel burn is negative of delta mass
-        outputs.set_val('Fuel Burn', fuel_burn, 'lbm')
-        outputs.set_val('Elapsed Time', time, 'min')
-        outputs.set_val('Ground Distance', range, 'nmi')
-        data[phase] = outputs
+            # get initial values, first in traj
+            if idx == 0:
+                initial_time = _get_phase_value(model, 'traj', phase, 'time', 'min', 0)
+                initial_range = _get_phase_value(model, 'traj', phase, 'distance', 'nmi', 0)[0]
 
-        # get final values, last in traj
-        final_mass = _get_phase_value('traj', phase, 'mass', 'lbm', -1)[0]
-        final_time = _get_phase_value('traj', phase, 't', 'min', -1)
-        final_range = _get_phase_value('traj', phase, 'distance', 'nmi', -1)[0]
+            outputs = NamedValues()
+            # Fuel burn is negative of delta mass
+            outputs.set_val('Fuel Burn', fuel_burn, 'lbm')
+            outputs.set_val('Elapsed Time', time, 'min')
+            outputs.set_val('Ground Distance', range, 'nmi')
+            data[phase] = outputs
 
-    totals = NamedValues()
-    totals.set_val('Total Fuel Burn', initial_mass - final_mass, 'lbm')
-    totals.set_val('Total Time', final_time - initial_time, 'min')
-    totals.set_val('Total Ground Distance', final_range - initial_range, 'nmi')
+            # get final values, last in traj
+            final_time = _get_phase_value(model, 'traj', phase, 'time', 'min', -1)
+            final_range = _get_phase_value(model, 'traj', phase, 'distance', 'nmi', -1)[0]
 
-    if MPI and MPI.COMM_WORLD.rank != 0:
+            totals = NamedValues()
+
+            if multi_mission:
+                var_name = f'{name}.'
+            else:
+                var_name = ''
+
+            totals.set_val(
+                'Total Fuel Burn',
+                prob.get_val(f'{var_name}mission:fuel', units='lbm')[0],
+                units='lbm',
+            )
+
+            totals.set_val(
+                'Total Fuel Capacity',
+                prob.get_val(f'{var_name}aircraft:fuel:total_capacity', units='lbm')[0],
+                units='lbm',
+            )
+            totals.set_val(
+                'Excess Fuel Capacity',
+                prob.get_val(f'{var_name}mission:constraints:excess_fuel_capacity', units='lbm')[0],
+                units='lbm',
+            )
+            totals.set_val('Total Time', final_time - initial_time, 'min')
+            totals.set_val('Total Ground Distance', final_range - initial_range, 'nmi')
+
+        all_data[name] = data
+        all_totals[name] = totals
+
+    if MPI and prob.comm.rank != 0:
+        # All collective calls are completed. We only output on rank 0.
         return
 
     with open(report_file, mode='w') as f:
-        f.write('# MISSION SUMMARY')
-        write_markdown_variable_table(
-            f,
-            totals,
-            ['Total Fuel Burn', 'Total Time', 'Total Ground Distance'],
-            {
-                'Total Fuel Burn': {'units': 'lbm'},
-                'Total Time': {'units': 'min'},
-                'Total Ground Distance': {'units': 'nmi'},
-            },
-        )
+        for name, model in models.items():
+            data = all_data[name]
+            totals = all_totals[name]
 
-        f.write('\n# MISSION SEGMENTS')
-        for phase in data:
-            f.write(f'\n## {phase}')
+            if multi_mission:
+                f.write(f'\n\n\n# MULTIMISSION: {name}\n\n')
+
+            f.write('# MISSION SUMMARY')
             write_markdown_variable_table(
                 f,
-                data[phase],
-                ['Fuel Burn', 'Elapsed Time', 'Ground Distance'],
+                totals,
+                [
+                    'Total Fuel Burn',
+                    'Total Fuel Capacity',
+                    'Excess Fuel Capacity',
+                    'Total Time',
+                    'Total Ground Distance',
+                ],
                 {
-                    'Fuel Burn': {'units': 'lbm'},
-                    'Elapsed Time': {'units': 'min'},
-                    'Ground Distance': {'units': 'nmi'},
+                    'Total Fuel Burn': {'units': 'lbm'},
+                    'Total Fuel Capacity': {'units': 'lbm'},
+                    'Excess Fuel Capacity': {'units': 'lbm'},
+                    'Total Time': {'units': 'min'},
+                    'Total Ground Distance': {'units': 'nmi'},
                 },
             )
 
+            f.write('\n# MISSION SEGMENTS')
+            for phase in data:
+                f.write(f'\n## {phase}')
+                write_markdown_variable_table(
+                    f,
+                    data[phase],
+                    ['Fuel Burn', 'Elapsed Time', 'Ground Distance'],
+                    {
+                        'Fuel Burn': {'units': 'lbm'},
+                        'Elapsed Time': {'units': 'min'},
+                        'Ground Distance': {'units': 'nmi'},
+                    },
+                )
 
-def input_check_report(prob, **kwargs):
+
+def input_check_report(prob: AviaryProblem, **kwargs):
     """
     Creates a basic input checking report.
 
@@ -261,11 +355,15 @@ def input_check_report(prob, **kwargs):
     reports_folder = Path(prob.get_reports_dir())
     report_file = reports_folder / 'input_checks.md'
 
-    model = prob.model
+    multi_mission = prob.problem_type == ProblemType.MULTI_MISSION
+    if multi_mission:
+        models = prob.aviary_groups_dict
+    else:
+        models = {prob._name: prob.model}
 
     # a change in OpenMDAO 3.38.1-dev adds a resolver in place of the prom2abs/abs2prom attributes
     try:
-        resolver = model._resolver
+        resolver = prob.model._resolver
 
         def prom2abs(prom_name):
             return resolver.absnames(prom_name, 'input')
@@ -276,25 +374,39 @@ def input_check_report(prob, **kwargs):
     except AttributeError:
 
         def prom2abs(prom_name):
-            return model._var_allprocs_prom2abs_list['input'][prom_name]
+            return prob.model._var_allprocs_prom2abs_list['input'][prom_name]
 
         def abs2prom(abs_name):
-            return model._var_allprocs_abs2prom['input'][abs_name]
+            return prob.model._var_allprocs_abs2prom['input'][abs_name]
 
     # Find all unconnected inputs.
-    all_ivc_abs = [k for k, v in model._conn_abs_in2out.items() if 'ivc' in v]
+    all_ivc_abs = [k for k, v in prob.model._conn_abs_in2out.items() if 'ivc' in v]
     all_ivc_prom = [abs2prom(v) for v in all_ivc_abs]
-
     aviary_metadata = prob.meta_data
-    aviary_inputs = prob.aviary_inputs
-    bare_inputs = {v for v in all_ivc_prom if v not in aviary_inputs}
+
+    bare_inputs = all_ivc_prom
+    for name, model in models.items():
+        if multi_mission:
+            aviary_inputs = model.aviary_inputs
+        else:
+            aviary_inputs = prob.aviary_inputs
+
+        bare_inputs = {v for v in bare_inputs if v not in aviary_inputs}
+        if multi_mission:
+            bare_inputs = {v for v in bare_inputs if v.lstrip(f'{name}.') not in aviary_inputs}
+
     bare_hierarchy_inputs = {
-        v for v in bare_inputs if v.startswith('mission:') or v.startswith('aircraft:')
+        v
+        for v in bare_inputs
+        if v.startswith('mission:')
+        or v.startswith('aircraft:')
+        or '.mission:' in v
+        or '.aircraft:' in v
     }
     bare_local_inputs = bare_inputs - bare_hierarchy_inputs
 
     # There are no more collective calls, so we can exit.
-    if MPI and MPI.COMM_WORLD.rank != 0:
+    if MPI and prob.comm.rank != 0:
         return
 
     with open(report_file, mode='w') as f:
@@ -310,10 +422,22 @@ def input_check_report(prob, **kwargs):
 
             for var in sorted(bare_hierarchy_inputs):
                 metadata = aviary_metadata.get(var)
-                units = metadata['units']
-                val = model.get_val(var, units=units)
-                desc = metadata['desc']
                 abs_paths = prom2abs(var)
+
+                try:
+                    units = metadata['units']
+                except (TypeError, KeyError):
+                    metadata = aviary_metadata.get(var.split('.')[-1])
+
+                    try:
+                        units = metadata['units']
+                    except (TypeError, KeyError):
+                        # This happens when the var is not defined in metadata.
+                        metadata = prob.model.get_io_metadata('input')[abs_paths[0]]
+                        units = metadata['units']
+
+                val = prob.model.get_val(var, units=units)
+                desc = metadata['desc']
 
                 f.write(f'| **{var}** | {val} | {units} | {desc} | {abs_paths}|\n')
 
@@ -338,8 +462,8 @@ def input_check_report(prob, **kwargs):
                     continue
 
                 abs_paths = prom2abs(var)
-                val = model.get_val(var)
-                meta = model._var_allprocs_abs2meta['input'][abs_paths[0]]
+                val = prob.model.get_val(var)
+                meta = prob.model._var_allprocs_abs2meta['input'][abs_paths[0]]
                 units = meta['units']
 
                 f.write(f'| **{var}** | {val} | {units} | {abs_paths}|\n')
@@ -350,7 +474,7 @@ def input_check_report(prob, **kwargs):
             f.write('None')
 
 
-def timeseries_csv(prob, **kwargs):
+def timeseries_csv(prob: AviaryProblem, **kwargs):
     """
     Generates a CSV file containing timeseries data for variables from an Aviary mission.
 
@@ -370,13 +494,22 @@ def timeseries_csv(prob, **kwargs):
     The first row of the CSV file contains headers with variable names and units.
     Each subsequent row represents the mission outputs at a different time step.
     """
-    timeseries_outputs = prob.model.list_outputs(
+    multi_mission = prob.problem_type == ProblemType.MULTI_MISSION
+    if multi_mission:
+        for _, model in prob.aviary_groups_dict.items():
+            # See issue #1186. We need to rewrite this report to support multimission
+            # For now, just write the first mission's csv file.
+            break
+    else:
+        model = prob.model
+
+    timeseries_outputs = model.list_outputs(
         includes='*timeseries*', out_stream=None, return_format='dict', units=True
     )
-    phase_names = prob.model.traj._phases.keys()
+    phase_names = model.traj._phases.keys()
 
     # There are no more collective calls, so we can exit.
-    if MPI and MPI.COMM_WORLD.rank != 0:
+    if MPI and prob.comm.rank != 0:
         return
 
     timeseries_outputs = {value['prom_name']: value for key, value in timeseries_outputs.items()}
@@ -462,3 +595,108 @@ def timeseries_csv(prob, **kwargs):
 
     # Write the DataFrame to a CSV file
     df.to_csv(report_file, index=False)
+
+
+def overridden_variables_report(prob: AviaryProblem, **kwargs):
+    """
+    Creates a report listing the overridden variables.
+
+    Parameters
+    ----------
+    prob : AviaryProblem
+        The AviaryProblem used to generate this report
+    """
+
+    reports_folder = Path(prob.get_reports_dir())
+    report_file = reports_folder / 'overridden_variables.md'
+    with open(report_file, mode='w') as f:
+        # check to see if this is a multi-mission problem
+        #   and make a list of all the aviary groups
+        if prob.aviary_groups_dict:
+            for mission_name, aviary_group in prob.aviary_groups_dict.items():
+                _overridden_variables_group_report(prob, aviary_group, mission_name, f)
+        else:
+            _overridden_variables_group_report(prob, prob.model, None, f)
+
+
+def _overridden_variables_group_report(prob, group, mission_name, f):
+    """
+    Writes overridden variables report for a single aviary group.
+
+    Parameters
+    ----------
+    prob : AviaryProblem
+        The AviaryProblem instance
+    group : Group
+        The OpenMDAO group to analyze for overridden variables
+    mission_name : str or None
+        Name of the mission (for multi-mission problems) or None
+    f : file object
+        Open file handle to write the report to
+    """
+    resolver = group._resolver
+
+    non_external_overridden_variables = []
+    external_variables = {}
+
+    for prom_name in resolver.prom_iter(iotype='output'):
+        # These variables are the result of replacing a computed value
+        #   with the output of another component
+        if 'EXTERNAL_SUBSYSTEM_OVERRIDE' in prom_name:
+            abs_name = resolver.absnames(prom_name, 'output')[0]
+            aircraft_variable_name = abs_name.split('.')[-1]
+            if aircraft_variable_name not in external_variables:
+                external_variables[aircraft_variable_name] = abs_name
+            continue
+        # the phrase "_OVERRIDE" in a variable indicates it is a
+        #   calculated value that we are discarding
+        if 'AIRCRAFT_DATA_OVERRIDE' in prom_name:
+            abs_name = resolver.absnames(prom_name, 'output')[0]
+            aircraft_variable_name = abs_name.split('.')[-1]
+            aviary_metadata = group.meta_data
+            metadata = aviary_metadata.get(aircraft_variable_name)
+            try:
+                units = metadata['units']
+            except (TypeError, KeyError):
+                # This happens when the var is not defined in metadata.
+                metadata = group.get_io_metadata('output')[abs_name]
+                units = metadata['units']
+            val = group.aviary_inputs.get_val(aircraft_variable_name, units=units)
+            non_external_overridden_variables.append((aircraft_variable_name, val, units))
+
+    if MPI and prob.comm.rank != 0:
+        # All collective calls are completed. Reports only generated on rank 0.
+        return
+
+    # Now that we have collected all overridden variables, write the report
+    if mission_name:
+        f.write(f'# MULTIMISSION: {mission_name}\n\n')
+
+    f.write('## Internal Overrides\n')
+    if non_external_overridden_variables:
+        f.write('| Name   | Value | Units |\n')
+        f.write('| ------ |-------| ----- |\n')
+        non_external_overridden_variables.sort(key=lambda x: x[0])
+        for aircraft_variable_name, val, units in non_external_overridden_variables:
+            if isinstance(val, np.ndarray):
+                valstring = np.array2string(val, formatter={'float_kind': lambda x: f'{x:.3g}'})
+            else:
+                valstring = f'{val:.3g}'
+            f.write(f'| {aircraft_variable_name} | {valstring} | {units} |\n')
+        f.write('\n')
+    else:
+        f.write('No internal overrides found.\n')
+
+    f.write('<br>\n\n')
+
+    f.write('## External Subsystem Overrides\n')
+    if external_variables:
+        f.write('| Name | Overriding OpenMDAO path |\n')
+        f.write('| ---- | ------------------------ |\n')
+        for aircraft_variable_name in sorted(external_variables.keys()):
+            absname = external_variables[aircraft_variable_name]
+            f.write(f'| {aircraft_variable_name} | {absname} |\n')
+
+        f.write('\n')
+    else:
+        f.write('No external subsystem overrides found.\n')

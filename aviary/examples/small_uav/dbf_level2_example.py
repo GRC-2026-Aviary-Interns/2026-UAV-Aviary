@@ -40,7 +40,7 @@ prob.options['group_by_pre_opt_post'] = True
 # Allow for user overrides here
 # add engine builder
 prob.load_inputs(
-    'models/aircraft/test_aircraft/small_scale_uav.csv',
+    'validation_cases/validation_data/test_models/small_scale_uav.csv',
     phase_info,
     engine_builders=[rc_prop],
 )

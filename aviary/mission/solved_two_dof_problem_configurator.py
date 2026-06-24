@@ -1,12 +1,14 @@
-from aviary.mission.flops_based.phases.groundroll_phase import (
+import openmdao.api as om
+
+from aviary.mission.solved_two_dof.phases.groundroll_phase import (
     GroundrollPhase as GroundrollPhaseVelocityIntegrated,
 )
-from aviary.mission.gasp_based.phases.twodof_phase import TwoDOFPhase
+from aviary.mission.solved_two_dof.phases.solved_twodof_phase import SolvedTwoDOFPhase
 from aviary.mission.problem_configurator import ProblemConfiguratorBase
 from aviary.subsystems.propulsion.utils import build_engine_deck
 from aviary.utils.utils import wrapped_convert_units
 from aviary.variable_info.enums import LegacyCode
-from aviary.variable_info.variables import Dynamic, Mission
+from aviary.variable_info.variables import Aircraft, Dynamic, Mission
 from aviary.mission.utils import process_guess_var
 
 
@@ -24,14 +26,17 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         aviary_group : AviaryGroup
             Aviary model that owns this configurator.
         """
-        if aviary_group.engine_builders is None:
-            aviary_group.engine_builders = [build_engine_deck(aviary_group.aviary_inputs)]
-
         # This doesn't really have much value, but is needed for initializing
         # an objective-related component that still lives in level 2.
-        aviary_group.target_range = aviary_group.aviary_inputs.get_val(
-            Mission.Design.RANGE, units='NM'
-        )
+
+        if 'target_range' in aviary_group.post_mission_info:
+            aviary_group.target_range = wrapped_convert_units(
+                aviary_group.post_mission_info['target_range'], 'NM'
+            )
+        else:
+            aviary_group.target_range = aviary_group.aviary_inputs.get_val(
+                Aircraft.Design.RANGE, units='NM'
+            )
 
     def get_default_phase_info(self, aviary_group):
         """
@@ -98,7 +103,7 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
 
         Returns
         -------
-        PhaseBuilderBase
+        PhaseBuilder
             Phase builder for requested phase.
         """
         if phase_options['user_options'].get('ground_roll') and not phase_options[
@@ -106,7 +111,7 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         ].get('rotation'):
             phase_builder = GroundrollPhaseVelocityIntegrated
         else:
-            phase_builder = TwoDOFPhase
+            phase_builder = SolvedTwoDOFPhase
 
         return phase_builder
 
@@ -157,10 +162,7 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         if not fix_initial:
             extra_options['initial_bounds'] = initial_bounds
 
-        if comm.size == 1 or fix_initial:
-            # Redundant on a fixed input; raises a warning if specified.
-            extra_options['initial_ref'] = None
-        else:
+        if not (comm.size == 1 or fix_initial):
             extra_options['initial_ref'] = initial_ref
 
         phase.set_time_options(
@@ -231,7 +233,8 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
             aviary_group.traj.link_phases(
                 phases[1:],
                 [Dynamic.Vehicle.ANGLE_OF_ATTACK],
-                units='rad',
+                units='deg',
+                ref=15.0,
                 connected=False,
             )
 
@@ -246,7 +249,7 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         """
         pass
 
-    def add_post_mission_systems(self, model):
+    def add_post_mission_systems(self, aviary_group):
         """
         Add any post mission systems.
 
@@ -259,7 +262,29 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         aviary_group : AviaryGroup
             Aviary model that owns this configurator.
         """
-        pass
+        # Add a mass equality constraint to set mission:gross_mass = initial mass state
+        first_flight_phase_name = list(aviary_group.mission_info.keys())[0]
+        first_flight_phase = aviary_group.traj._phases[first_flight_phase_name]
+        first_flight_phase.set_state_options(
+            Dynamic.Vehicle.MASS, fix_initial=False, input_initial=False
+        )
+
+        # connect summary mass to the initial guess of mass in the first phase
+        eq = aviary_group.add_subsystem(
+            f'link_{first_flight_phase_name}_mass',
+            om.EQConstraintComp(),
+            promotes_inputs=[('rhs:mass', Mission.GROSS_MASS)],
+        )
+
+        # TODO: replace hard_coded ref for this constraint.
+        eq.add_eq_output('mass', eq_units='lbm', normalize=False, ref=100000.0, add_constraint=True)
+
+        aviary_group.connect(
+            f'traj.{first_flight_phase_name}.states:mass',
+            f'link_{first_flight_phase_name}_mass.lhs:mass',
+            src_indices=[0],
+            flat_src_indices=True,
+        )
 
     def set_phase_initial_guesses(
         self, aviary_group, phase_name, phase, guesses, target_prob, parent_prefix
@@ -293,13 +318,13 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
         # for the simple mission method, use the provided initial and final mach
         # and altitude values from phase_info
         initial_altitude = wrapped_convert_units(
-            aviary_group.phase_info[phase_name]['user_options']['altitude_initial'], 'ft'
+            aviary_group.mission_info[phase_name]['user_options']['altitude_initial'], 'ft'
         )
         final_altitude = wrapped_convert_units(
-            aviary_group.phase_info[phase_name]['user_options']['altitude_final'], 'ft'
+            aviary_group.mission_info[phase_name]['user_options']['altitude_final'], 'ft'
         )
-        initial_mach = aviary_group.phase_info[phase_name]['user_options']['mach_initial']
-        final_mach = aviary_group.phase_info[phase_name]['user_options']['mach_final']
+        initial_mach = aviary_group.mission_info[phase_name]['user_options']['mach_initial']
+        final_mach = aviary_group.mission_info[phase_name]['user_options']['mach_final']
 
         guesses['mach'] = ([initial_mach[0], final_mach[0]], 'unitless')
         guesses['altitude'] = ([initial_altitude, final_altitude], 'ft')
@@ -312,25 +337,8 @@ class SolvedTwoDOFProblemConfigurator(ProblemConfiguratorBase):
 
             # Set initial guess for control variables
             if guess_key in control_keys:
-                try:
-                    target_prob.set_val(
-                        parent_prefix + f'traj.{phase_name}.controls:{guess_key}',
-                        process_guess_var(val, guess_key, phase),
-                        units=units,
-                    )
-
-                except KeyError:
-                    try:
-                        target_prob.set_val(
-                            parent_prefix + f'traj.{phase_name}.polynomial_controls:{guess_key}',
-                            process_guess_var(val, guess_key, phase),
-                            units=units,
-                        )
-
-                    except KeyError:
-                        target_prob.set_val(
-                            parent_prefix + f'traj.{phase_name}.bspline_controls:',
-                            {guess_key},
-                            process_guess_var(val, guess_key, phase),
-                            units=units,
-                        )
+                phase.set_control_val(
+                    guess_key,
+                    vals=process_guess_var(val, guess_key, phase),
+                    units=units,
+                )

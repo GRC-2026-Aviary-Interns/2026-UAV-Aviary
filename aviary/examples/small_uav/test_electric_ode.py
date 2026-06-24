@@ -4,7 +4,7 @@ import openmdao.api as om
 import aviary.api as av
 import numpy as np
 
-from aviary.mission.flops_based.ode.energy_ODE import EnergyODE
+from aviary.mission.energy_state.ode.energy_state_ODE import EnergyStateODE as EnergyODE
 # from aviary.models.aircraft.advanced_single_aisle.advanced_single_aisle_data import (
 #     detailed_landing_flare,
 #     inputs,

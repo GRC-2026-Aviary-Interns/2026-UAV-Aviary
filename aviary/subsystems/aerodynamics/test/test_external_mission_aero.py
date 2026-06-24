@@ -5,13 +5,13 @@ from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import require_pyoptsparse, use_tempdirs
 
 import aviary.api as av
-from aviary.examples.external_subsystems.custom_aero.custom_aero_builder import CustomAeroBuilder
+from aviary.models.external_subsystems.simple_aero.simple_aero_builder import SimpleAeroBuilder
 
-phase_info = deepcopy(av.default_height_energy_phase_info)
+phase_info = deepcopy(av.default_energy_state_phase_info)
 
 
 @use_tempdirs
-class TestExternalAero(av.TestSubsystemBuilderBase):
+class TestExternalAero(av.TestSubsystemBuilder):
     """
     Test replacing internal drag calculation with an external subsystem.
 
@@ -25,27 +25,22 @@ class TestExternalAero(av.TestSubsystemBuilderBase):
         phase_info.pop('climb')
         phase_info.pop('descent')
 
-        # Add custom aero.
-        # TODO: This API for replacing aero will be changed an upcoming release.
-        phase_info['cruise']['external_subsystems'] = [CustomAeroBuilder()]
-
         # Disable internal aero
         # TODO: This API for replacing aero will be changed an upcoming release.
-        phase_info['cruise']['subsystem_options']['core_aerodynamics'] = {
+        phase_info['cruise']['subsystem_options']['aerodynamics'] = {
             'method': 'external',
         }
 
         prob = av.AviaryProblem()
 
         # Load aircraft and options data from user
-        prob.load_inputs('models/aircraft/test_aircraft/aircraft_for_bench_FwFm.csv', phase_info)
-
+        prob.load_inputs(
+            'validation_cases/validation_data/test_models/aircraft_for_bench_FwFm.csv', phase_info
+        )
+        prob.load_external_subsystems([SimpleAeroBuilder()])
         prob.check_and_preprocess_inputs()
-        prob.add_pre_mission_systems()
-        prob.add_phases()
-        prob.add_post_mission_systems()
 
-        prob.link_phases()
+        prob.build_model()
 
         # SLSQP didn't work so well here.
         prob.add_driver('IPOPT')
@@ -54,8 +49,6 @@ class TestExternalAero(av.TestSubsystemBuilderBase):
         prob.add_objective()
 
         prob.setup()
-
-        prob.set_initial_guesses()
 
         prob.run_aviary_problem(suppress_solver_print=True)
 

@@ -87,7 +87,7 @@ prob = av.AviaryProblem(verbosity=0)
 prob.options['group_by_pre_opt_post'] = True
 
 prob.load_inputs(
-    'models/aircraft/test_aircraft/small_scale_uav.csv',
+    'validation_cases/validation_data/test_models/small_scale_uav.csv',
     phase_info,
     engine_builders=[rc_prop],
 )

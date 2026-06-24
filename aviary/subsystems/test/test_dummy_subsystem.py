@@ -4,8 +4,8 @@ from copy import deepcopy
 import openmdao.api as om
 
 import aviary.api as av
-from aviary.subsystems.subsystem_builder_base import SubsystemBuilderBase
-from aviary.subsystems.test.subsystem_tester import TestSubsystemBuilderBase
+from aviary.subsystems.subsystem_builder import SubsystemBuilder
+from aviary.subsystems.test.subsystem_tester import TestSubsystemBuilder
 from aviary.variable_info.variables import Aircraft as av_Aircraft
 from aviary.variable_info.variables import Mission as av_Mission
 
@@ -45,7 +45,7 @@ AdditionalMetaData = deepcopy(av.CoreMetaData)
 av.add_meta_data(
     Aircraft.Dummy.VARIABLE,
     desc='Dummy aircraft variable',
-    default_value=0.5,
+    default_value=0.25,
     option=False,
     units='kn',
     meta_data=ExtendedMetaData,
@@ -226,52 +226,55 @@ class DummyMissionComp(om.ExplicitComponent):
         )
 
 
-class PreOnlyBuilder(SubsystemBuilderBase):
-    def build_pre_mission(self, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', DummyComp(), promotes=['*'])
-        return group
+class PreOnlyBuilder(SubsystemBuilder):
+    def build_pre_mission(self, aviary_inputs, subsystem_options):
+        return DummyComp()
 
-    def get_mass_names(self):
+    def get_mass_names(self, aviary_inputs=None):
         return [Aircraft.Dummy.VARIABLE_OUT]
 
 
-class PostOnlyBuilder(SubsystemBuilderBase):
-    def build_post_mission(self, aviary_inputs, phase_info, phase_mission_bus_lengths):
+class PostOnlyBuilder(SubsystemBuilder):
+    def build_post_mission(
+        self,
+        aviary_inputs=None,
+        mission_info=None,
+        subsystem_options=None,
+        phase_mission_bus_lengths=None,
+    ):
         group = om.Group()
-        group.add_subsystem('comp', om.ExecComp('y = x**2'), promotes=['*'])
+        group.add_subsystem(
+            'comp',
+            om.ExecComp('y_postmission = x**2'),
+            promotes_inputs=[('x', Aircraft.Dummy.VARIABLE_OUT)],
+            promotes_outputs=['*'],
+        )
         return group
 
 
-class FailingSubsystemBuilder(SubsystemBuilderBase):
-    def get_states(self):
+class FailingSubsystemBuilder(SubsystemBuilder):
+    def get_states(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {
             'State1': {
                 'rate_source': 'NonExistentRateSource',
             }
         }
 
-    def build_mission(self, num_nodes, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', om.ExecComp('y = x**2'))
-        return group
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options):
+        return om.ExecComp('y = x**2')
 
 
-class ArrayGuessSubsystemBuilder(SubsystemBuilderBase):
+class ArrayGuessSubsystemBuilder(SubsystemBuilder):
     def __init__(self, name='array_guess'):
         super().__init__(name, meta_data=ExtendedMetaData)
 
-    def build_pre_mission(self, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', DummyComp(), promotes=['*'])
-        return group
+    def build_pre_mission(self, aviary_inputs, subsystem_options):
+        return DummyComp()
 
-    def build_mission(self, num_nodes, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', DummyMissionComp(num_nodes=num_nodes), promotes=['*'])
-        return group
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options):
+        return DummyMissionComp(num_nodes=num_nodes)
 
-    def get_initial_guesses(self):
+    def get_initial_guesses(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {
             Mission.Dummy.VARIABLE: {
                 'val': [1.0, 2.0, 3.0],
@@ -280,7 +283,7 @@ class ArrayGuessSubsystemBuilder(SubsystemBuilderBase):
             }
         }
 
-    def get_states(self):
+    def get_states(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {
             Mission.Dummy.VARIABLE: {
                 'rate_source': Mission.Dummy.VARIABLE_RATE,
@@ -288,10 +291,10 @@ class ArrayGuessSubsystemBuilder(SubsystemBuilderBase):
             }
         }
 
-    def get_controls(self, **kwargs):
+    def get_controls(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {}
 
-    def get_parameters(self, aviary_inputs=None, phase_info=None):
+    def get_parameters(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {Aircraft.Dummy.PARAMETER: {'val': 2.0, 'units': 'm'}}
 
 
@@ -332,21 +335,20 @@ class DummyFlightDurationComp(om.ExplicitComponent):
         )
 
 
-class AdditionalArrayGuessSubsystemBuilder(SubsystemBuilderBase):
+class AdditionalArrayGuessSubsystemBuilder(SubsystemBuilder):
     def __init__(self, name='additional_array_guess'):
         super().__init__(name, meta_data=AdditionalMetaData)
 
-    def build_pre_mission(self, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', DummyWingspanComp(), promotes=['*'])
-        return group
+    def build_pre_mission(self, aviary_inputs, subsystem_options):
+        return DummyWingspanComp()
 
-    def build_mission(self, num_nodes, aviary_inputs):
-        group = om.Group()
-        group.add_subsystem('comp', DummyFlightDurationComp(num_nodes=num_nodes), promotes=['*'])
-        return group
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options):
+        return DummyFlightDurationComp(num_nodes=num_nodes)
 
-    def get_initial_guesses(self):
+    # def mission_outputs(self, **kwargs):
+    #     return [MoreMission.Dummy.DUMMY_FLIGHT_DURATION + '_rate']
+
+    def get_initial_guesses(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {
             MoreMission.Dummy.DUMMY_FLIGHT_DURATION: {
                 'val': [1.0, 2.0, 3.0],
@@ -355,7 +357,7 @@ class AdditionalArrayGuessSubsystemBuilder(SubsystemBuilderBase):
             }
         }
 
-    def get_states(self):
+    def get_states(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return {
             MoreMission.Dummy.DUMMY_FLIGHT_DURATION: {
                 'rate_source': MoreMission.Dummy.DUMMY_FLIGHT_DURATION + '_rate',
@@ -363,8 +365,8 @@ class AdditionalArrayGuessSubsystemBuilder(SubsystemBuilderBase):
             }
         }
 
-    def get_controls(self, phase_name=None):
-        if phase_name == 'cruise':
+    def get_controls(self, aviary_inputs=None, user_options=None, subsystem_options=None):
+        if subsystem_options and subsystem_options.get('enable_control', False):
             controls_dict = {
                 MoreMission.Dummy.DUMMY_CONTROL: {
                     'units': 'unitless',
@@ -377,21 +379,21 @@ class AdditionalArrayGuessSubsystemBuilder(SubsystemBuilderBase):
             controls_dict = {}
         return controls_dict
 
-    def get_outputs(self):
+    def get_timeseries(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return [MoreMission.Dummy.DUMMY_CONTROL, MoreMission.Dummy.TIMESERIES_VAR]
 
 
-class TestPreOnly(TestSubsystemBuilderBase):
+class TestPreOnly(TestSubsystemBuilder):
     def setUp(self):
         self.subsystem_builder = PreOnlyBuilder()
 
 
-class TestPostOnly(TestSubsystemBuilderBase):
+class TestPostOnly(TestSubsystemBuilder):
     def setUp(self):
         self.subsystem_builder = PostOnlyBuilder()
 
 
-class TestFailingBuilder(TestSubsystemBuilderBase):
+class TestFailingBuilder(TestSubsystemBuilder):
     def setUp(self):
         self.subsystem_builder = FailingSubsystemBuilder()
 
@@ -400,12 +402,12 @@ class TestFailingBuilder(TestSubsystemBuilderBase):
             super().test_check_state_variables()
 
 
-class TestArrayGuessBuilder(TestSubsystemBuilderBase):
+class TestArrayGuessBuilder(TestSubsystemBuilder):
     def setUp(self):
         self.subsystem_builder = ArrayGuessSubsystemBuilder()
 
 
-class TestAdditionalArrayGuessBuilder(TestSubsystemBuilderBase):
+class TestAdditionalArrayGuessBuilder(TestSubsystemBuilder):
     def setUp(self):
         self.subsystem_builder = AdditionalArrayGuessSubsystemBuilder()
 

@@ -9,7 +9,7 @@ from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import require_pyoptsparse, use_tempdirs
 
 from aviary.api import Mission
-from aviary.interface.methods_for_level2 import AviaryProblem
+from aviary.core.aviary_problem import AviaryProblem
 from aviary.variable_info.variables import Aircraft, Dynamic, Mission, Settings
 
 phase_info = {
@@ -28,10 +28,11 @@ phase_info = {
             'altitude_final': (32000.0, 'ft'),
             'altitude_bounds': ((0.0, 32000.0), 'ft'),
             'altitude_polynomial_order': 3,
+            'mass_ref': (2.0e5, 'lbm'),
             'throttle_enforcement': 'control',
             'throttle_optimize': True,
             'time_initial': (0.0, 's'),
-            'time_initial_bounds': ((0.0, 0.0), 'min'),
+            'time_initial': (0.0, 'min'),
             'time_duration_bounds': ((32.0, 128.0), 'min'),
         },
         'initial_guesses': {
@@ -53,6 +54,8 @@ phase_info = {
             'altitude_final': (34000.0, 'ft'),
             'altitude_bounds': ((32000.0, 34000.0), 'ft'),
             'altitude_polynomial_order': 1,
+            'mass_ref': (2.0e5, 'lbm'),
+            'distance_ref': (1906, 'nmi'),
             'throttle_enforcement': 'control',
             'throttle_optimize': True,
             'throttle_polynomial_order': 1,
@@ -77,6 +80,8 @@ phase_info = {
             'altitude_final': (500.0, 'ft'),
             'altitude_bounds': ((500.0, 34000.0), 'ft'),
             'altitude_polynomial_order': 3,
+            'distance_ref': (1906, 'nmi'),
+            'mass_ref': (2.0e5, 'lbm'),
             'throttle_enforcement': 'control',
             'throttle_optimize': True,
             'time_initial_bounds': ((90.0, 361.5), 'min'),
@@ -107,9 +112,9 @@ class OptimizeThrottleTestCase(unittest.TestCase):
         prob = AviaryProblem()
 
         prob.load_inputs(
-            'models/aircraft/test_aircraft/aircraft_for_bench_FwFm.csv',
+            'validation_cases/validation_data/test_models/aircraft_for_bench_FwFm.csv',
             phase_info,
-            verbosity=1,
+            verbosity=0,
         )
 
         prob.aviary_inputs.set_val(Settings.VERBOSITY, 0)
@@ -129,12 +134,12 @@ class OptimizeThrottleTestCase(unittest.TestCase):
 
         prob.setup()
 
-        prob.set_initial_guesses()
+        prob.run_aviary_problem(simulate=False)
 
-        prob.run_aviary_problem(simulate=False, optimization_history_filename='z.sql')
+        self.assertTrue(prob.result.success)
 
-        gross_mass = prob.get_val(Mission.Summary.GROSS_MASS, units='lbm')
-        assert_near_equal(gross_mass, 160689.0, tolerance=1e-3)
+        gross_mass = prob.get_val(Mission.GROSS_MASS, units='lbm')
+        assert_near_equal(gross_mass, 161090.7, tolerance=1e-3)
 
         cruise_throttle = prob.get_val('traj.cruise.timeseries.throttle')
         assert_near_equal(cruise_throttle[-1], 0.6925, tolerance=1e-2)

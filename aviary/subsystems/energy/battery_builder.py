@@ -2,11 +2,11 @@ import numpy as np
 import openmdao.api as om
 
 from aviary.subsystems.energy.battery_sizing import SizeBattery
-from aviary.subsystems.subsystem_builder_base import SubsystemBuilderBase
+from aviary.subsystems.subsystem_builder import SubsystemBuilder
 from aviary.variable_info.variables import Aircraft, Dynamic
 
 
-class BatteryBuilder(SubsystemBuilderBase):
+class BatteryBuilder(SubsystemBuilder):
     """
     Builder for the battery model. This simplified battery is sized with a simple energy density relation, and tracks state of charge over the mission (with an efficiency).
 
@@ -28,15 +28,17 @@ class BatteryBuilder(SubsystemBuilderBase):
 
     """
 
-    default_name = 'battery'
+    _default_name = 'battery'
 
-    def build_pre_mission(self, aviary_inputs=None):
+    def build_pre_mission(self, aviary_inputs=None, subsystem_options=None):
         return SizeBattery(aviary_inputs=aviary_inputs)
 
-    def get_mass_names(self):
-        return [Aircraft.Battery.MASS]
+    # Special Case: Aviary directly looks for battery mass as part of mass buildup, rather then
+    # letting it get summed with other external subsystem masses
+    # def get_mass_names(self, aviary_inputs=None):
+    # return [Aircraft.Battery.MASS]
 
-    def build_mission(self, num_nodes, aviary_inputs=None) -> om.Group:
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options) -> om.Group:
         battery_group = om.Group()
         # Here, the efficiency variable is used as an overall efficiency for the battery
         soc = om.ExecComp(
@@ -44,7 +46,7 @@ class BatteryBuilder(SubsystemBuilderBase):
             state_of_charge={'val': np.zeros(num_nodes), 'units': 'unitless'},
             energy_capacity={'val': 10.0, 'units': 'kJ'},
             cumulative_electric_energy_used={'val': np.zeros(num_nodes), 'units': 'kJ'},
-            efficiency={'val': 0.95, 'units': 'unitless'},
+            efficiency={'val': 1.0, 'units': 'unitless'},
             has_diag_partials=True,
         )
 
@@ -64,10 +66,17 @@ class BatteryBuilder(SubsystemBuilderBase):
 
         return battery_group
 
-    def get_states(self):
-        # need to add subsystem name to target name ('battery.') for state due
-        # to issue where non aircraft or mission variables are not fully promoted
-        # TODO fix this by not promoting only 'aircraft:*' and 'mission:*'
+    def mission_inputs(self, aviary_inputs=None, user_options=None, subsystem_options=None):
+        return [
+            Aircraft.Battery.ENERGY_CAPACITY,
+            Dynamic.Vehicle.CUMULATIVE_ELECTRIC_ENERGY_USED,
+            Aircraft.Battery.EFFICIENCY,
+        ]
+
+    def mission_outputs(self, aviary_inputs=None, user_options=None, subsystem_options=None):
+        return [Dynamic.Vehicle.BATTERY_STATE_OF_CHARGE]
+
+    def get_states(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         state_dict = {
             Dynamic.Vehicle.CUMULATIVE_ELECTRIC_ENERGY_USED: {
                 'fix_initial': True,
@@ -78,17 +87,17 @@ class BatteryBuilder(SubsystemBuilderBase):
                 'units': 'kJ',
                 'rate_source': Dynamic.Vehicle.Propulsion.ELECTRIC_POWER_IN_TOTAL,
                 'input_initial': 0.0,
-                'targets': f'{self.name}.{Dynamic.Vehicle.CUMULATIVE_ELECTRIC_ENERGY_USED}',
+                'targets': Dynamic.Vehicle.CUMULATIVE_ELECTRIC_ENERGY_USED,
             }
         }
 
         return state_dict
 
-    def get_constraints(self):
+    def get_constraints(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         constraint_dict = {
             # Can add constraints here; state of charge is a common one in many
             # battery applications
-            f'{self.name}.{Dynamic.Vehicle.BATTERY_STATE_OF_CHARGE}': {
+            Dynamic.Vehicle.BATTERY_STATE_OF_CHARGE: {
                 'type': 'boundary',
                 'loc': 'final',
                 'lower': 0.2,
@@ -96,15 +105,19 @@ class BatteryBuilder(SubsystemBuilderBase):
         }
         return constraint_dict
 
-    def get_parameters(self, aviary_inputs=None, phase_info=None):
+    def get_parameters(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         params = {
             Aircraft.Battery.ENERGY_CAPACITY: {
                 'val': 0.0,
                 'units': 'kJ',
             },
+            Aircraft.Battery.EFFICIENCY: {
+                'val': 1.0,
+                'units': 'unitless',
+            },
         }
         return params
 
-    def get_linked_variables(self):
+    def get_linked_variables(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         # link cumulative electric energy between phases
         return [Dynamic.Vehicle.CUMULATIVE_ELECTRIC_ENERGY_USED]

@@ -1,10 +1,10 @@
 from aviary.subsystems.propulsion.gearbox.model.gearbox_mission import GearboxMission
 from aviary.subsystems.propulsion.gearbox.model.gearbox_premission import GearboxPreMission
-from aviary.subsystems.subsystem_builder_base import SubsystemBuilderBase
+from aviary.subsystems.subsystem_builder import SubsystemBuilder
 from aviary.variable_info.variables import Aircraft, Dynamic, Mission
 
 
-class GearboxBuilder(SubsystemBuilderBase):
+class GearboxBuilder(SubsystemBuilder):
     """
     Define the builder for a single gearbox subsystem that provides methods
     to define the gearbox subsystem's states, design variables, fixed values,
@@ -19,20 +19,29 @@ class GearboxBuilder(SubsystemBuilderBase):
     This is a reduction gearbox, so gear ratio is input_RPM/output_RPM.
     """
 
-    def __init__(self, name='gearbox', include_constraints=True):
+    _default_name = 'gearbox'
+
+    def __init__(self, name=None, meta_data=None, include_constraints=True):
         """Initializes the GearboxBuilder object with a given name."""
         self.include_constraints = include_constraints
-        super().__init__(name)
+        super().__init__(name, meta_data)
 
-    def build_pre_mission(self, aviary_inputs):
+    def build_pre_mission(self, aviary_inputs, subsystem_options=None):
         """Builds an OpenMDAO system for the pre-mission computations of the subsystem."""
         return GearboxPreMission(simple_mass=True)
 
-    def build_mission(self, num_nodes, aviary_inputs):
+    def build_mission(self, num_nodes, aviary_inputs, user_options, subsystem_options):
         """Builds an OpenMDAO system for the mission computations of the subsystem."""
         return GearboxMission(num_nodes=num_nodes)
 
-    def get_design_vars(self):
+    def mission_inputs(self, aviary_inputs=None, user_options=None, subsystem_options=None):
+        inputs = [Aircraft.Engine.Gearbox.GEAR_RATIO, Aircraft.Engine.Gearbox.EFFICIENCY]
+        return inputs
+
+    def mission_outputs(self, aviary_inputs=None, user_options=None, subsystem_options=None):
+        return []
+
+    def get_design_vars(self, aviary_inputs=None):
         """
         Design vars are only tested to see if they exist in pre_mission
         Returns a dictionary of design variables for the gearbox subsystem, where the keys are the
@@ -41,23 +50,23 @@ class GearboxBuilder(SubsystemBuilderBase):
         additional keyword arguments required by OpenMDAO for the design variable.
         """
         DVs = {
-            Aircraft.Engine.Gearbox.GEAR_RATIO: {
-                'units': 'unitless',
-                'lower': 1.0,
-                'upper': 20.0,
-                # 'val':  10  # initial value
-            },
+            # Aircraft.Engine.Gearbox.GEAR_RATIO: {
+            #     'units': 'unitless',
+            #     'lower': 1.0,
+            #     'upper': 20.0,
+            #     # 'val':  10  # initial value
+            # },
             # This var appears in both mission and pre-mission
-            Aircraft.Engine.Gearbox.SHAFT_POWER_DESIGN: {
-                # 'val': 10000,
-                'units': 'kW',
-                'lower': 1.0,
-                'upper': None,
-            },
+            # Aircraft.Engine.Gearbox.SHAFT_POWER_DESIGN: {
+            #     # 'val': 10000,
+            #     'units': 'kW',
+            #     'lower': 1.0,
+            #     'upper': None,
+            # },
         }
         return DVs
 
-    def get_parameters(self, aviary_inputs=None, phase_info=None):
+    def get_parameters(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         """
         Parameters are only tested to see if they exist in mission.
         The value doesn't change throughout the mission.
@@ -82,37 +91,37 @@ class GearboxBuilder(SubsystemBuilderBase):
                 'units': 'unitless',
                 'static_target': True,
             },
-            Aircraft.Engine.Gearbox.SHAFT_POWER_DESIGN: {
-                'val': 1.0,
-                'units': 'kW',
-                'lower': 1.0,
-                'upper': None,
-            },
+            # Aircraft.Engine.Gearbox.SHAFT_POWER_DESIGN: {
+            #     'val': 1.0,
+            #     'units': 'kW',
+            #     'static_target': True,
+            # },
         }
 
         return parameters
 
-    def get_mass_names(self):
+    def get_mass_names(self, aviary_inputs=None):
         return [Aircraft.Engine.Gearbox.MASS]
 
-    def get_outputs(self):
+    def get_timeseries(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         return [
-            Dynamic.Vehicle.Propulsion.SHAFT_POWER + '_out',
-            Dynamic.Vehicle.Propulsion.SHAFT_POWER_MAX + '_out',
-            Dynamic.Vehicle.Propulsion.RPM + '_out',
-            Dynamic.Vehicle.Propulsion.TORQUE + '_out',
-            Mission.Constraints.GEARBOX_SHAFT_POWER_RESIDUAL,
+            # Dynamic.Vehicle.Propulsion.SHAFT_POWER + '_out',
+            # Dynamic.Vehicle.Propulsion.SHAFT_POWER_MAX + '_out',
+            # Dynamic.Vehicle.Propulsion.RPM + '_out',
+            # Dynamic.Vehicle.Propulsion.TORQUE + '_out',
+            # Mission.Constraints.GEARBOX_SHAFT_POWER_RESIDUAL,
         ]
 
-    def get_constraints(self):
+    def get_constraints(self, aviary_inputs=None, user_options=None, subsystem_options=None):
         if self.include_constraints:
-            constraints = {
-                Mission.Constraints.GEARBOX_SHAFT_POWER_RESIDUAL: {
-                    'lower': 0.0,
-                    'type': 'path',
-                    'units': 'kW',
-                }
-            }
+            constraints = {}
+            # constraints = {
+            #     Mission.Constraints.GEARBOX_SHAFT_POWER_RESIDUAL: {
+            #         'lower': 0.0,
+            #         'type': 'path',
+            #         'units': 'kW',
+            #     }
+            # }
         else:
             constraints = {}
         return constraints

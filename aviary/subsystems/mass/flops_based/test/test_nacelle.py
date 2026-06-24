@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.testing_utils import use_tempdirs
 from parameterized import parameterized
 
 from aviary.subsystems.mass.flops_based.nacelle import NacelleMass
@@ -16,10 +17,12 @@ from aviary.validation_cases.validation_tests import (
     get_flops_case_names,
     get_flops_inputs,
     print_case,
+    Version,
 )
 from aviary.variable_info.variables import Aircraft, Settings
 
 
+@use_tempdirs
 class NacelleMassTest(unittest.TestCase):
     def setUp(self):
         self.prob = om.Problem()
@@ -44,6 +47,7 @@ class NacelleMassTest(unittest.TestCase):
         prob.setup(check=False, force_alloc_complex=True)
 
         flops_validation_test(
+            self,
             self.prob,
             case_name,
             input_keys=[
@@ -53,6 +57,7 @@ class NacelleMassTest(unittest.TestCase):
                 Aircraft.Engine.SCALED_SLS_THRUST,
             ],
             output_keys=Aircraft.Nacelle.MASS,
+            version=Version.TRANSPORT_and_BWB,
         )
 
     def test_IO(self):
@@ -90,7 +95,7 @@ class NacelleMassTest(unittest.TestCase):
         prob.run_model()
 
         nacelle_mass = prob.get_val(Aircraft.Nacelle.MASS, 'lbm')
-        nacelle_mass_expected = np.array([2793.02569, 778.05716, 1915.21762])
+        nacelle_mass_expected = np.array([698.25642407, 389.02857912, 957.60881015])
         assert_near_equal(nacelle_mass, nacelle_mass_expected, tolerance=1e-8)
 
         partial_data = prob.check_partials(

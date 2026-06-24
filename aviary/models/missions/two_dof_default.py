@@ -1,13 +1,15 @@
-from aviary.variable_info.enums import SpeedType
-from aviary.variable_info.variables import Mission
+from aviary.variable_info.enums import PhaseType, SpeedType
+from aviary.variable_info.variables import Aircraft, Mission
 
 # defaults for 2DOF based phases
 mission_distance = 3675
 
 phase_info = {
     'groundroll': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'low_speed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'low_speed'}},
         'user_options': {
+            'phase_type': PhaseType.TWO_DOF_TAKEOFF,
+            'ground_roll': True,
             'num_segments': 1,
             'order': 3,
             'time_initial': (0.0, 's'),
@@ -32,25 +34,26 @@ phase_info = {
         },
     },
     'rotation': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'low_speed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'low_speed'}},
         'user_options': {
+            'phase_type': PhaseType.TWO_DOF_TAKEOFF,
+            'rotation': True,
             'num_segments': 1,
             'order': 3,
             'time_duration_bounds': ((1, 100), 's'),
             'time_duration_ref': (50.0, 's'),
             'velocity_bounds': ((0, 1000), 'kn'),
-            'velocity_ref': (100, 'kn'),
-            'velocity_ref0': (0, 'kn'),
+            'velocity_ref': (150, 'kn'),
             'mass_bounds': ((0, None), 'lbm'),
             'mass_ref': (150_000, 'lbm'),
             'mass_defect_ref': (150_000, 'lbm'),
             'distance_bounds': ((0, 10.0e3), 'ft'),
             'distance_ref': (5000, 'ft'),
             'distance_defect_ref': (5000, 'ft'),
-            'angle_of_attack_initial': (0.0, 'rad'),
-            'angle_of_attack_bounds': ((0.0, 5.0), 'rad'),
-            'angle_of_attack_ref': (5.0, 'rad'),
-            'angle_of_attack_defect_ref': (5.0, 'rad'),
+            'angle_of_attack_initial': (0.0, 'deg'),
+            'angle_of_attack_bounds': ((0.0, 12.0), 'deg'),
+            'angle_of_attack_ref': (12.0, 'deg'),
+            'angle_of_attack_defect_ref': (12.0, 'deg'),
             'normal_ref': (10000, 'lbf'),
         },
         'initial_guesses': {
@@ -62,13 +65,14 @@ phase_info = {
         },
     },
     'ascent': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'low_speed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'low_speed'}},
         'user_options': {
+            'phase_type': PhaseType.TWO_DOF_TAKEOFF,
             'num_segments': 4,
             'order': 3,
             'velocity_bounds': ((0, 700), 'kn'),
             'velocity_ref': (200, 'kn'),
-            'velocity_ref0': (0, 'kn'),
+            'time_duration_ref': (10, 's'),
             'mass_bounds': ((0, None), 'lbm'),
             'mass_ref': (150_000, 'lbm'),
             'mass_defect_ref': (150_000, 'lbm'),
@@ -78,14 +82,15 @@ phase_info = {
             'altitude_bounds': ((0.0, 700.0), 'ft'),
             'altitude_ref': (1000, 'ft'),
             'altitude_defect_ref': (1000, 'ft'),
+            'altitude_initial': (0, 'ft'),
             'altitude_final': (500, 'ft'),
             'altitude_constraint_ref': (500, 'ft'),
-            'flight_path_angle_bounds': ((-10.0, 20.0), 'rad'),
+            'flight_path_angle_bounds': ((-10.0, 20.0), 'deg'),
             'flight_path_angle_ref': (57.2958, 'deg'),
             'flight_path_angle_defect_ref': (57.2958, 'deg'),
             'flight_path_angle_initial': (0.0, 'deg'),
             'pitch_constraint_bounds': ((0.0, 15.0), 'deg'),
-            'pitch_constraint_ref': (1.0, 'deg'),
+            'pitch_constraint_ref': (15.0, 'deg'),
         },
         'initial_guesses': {
             'time': ([45.0, 25.0], 's'),
@@ -100,8 +105,9 @@ phase_info = {
         },
     },
     'accel': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
+            'phase_type': PhaseType.ACCEL,
             'num_segments': 1,
             'order': 3,
             'alt': (500, 'ft'),
@@ -126,15 +132,15 @@ phase_info = {
         },
     },
     'climb1': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
             'num_segments': 1,
             'order': 3,
             'EAS_target': (250, 'kn'),
-            'mach_cruise': 0.8,
-            'target_mach': False,
+            'mach_target': 0.8,
             'time_duration_bounds': ((30, 300), 's'),
             'time_duration_ref': (1000, 's'),
+            'altitude_initial': (500.0, 'ft'),
             'altitude_final': (10.0e3, 'ft'),
             'altitude_bounds': ((400.0, 11_000.0), 'ft'),
             'altitude_ref': (10.0e3, 'ft'),
@@ -143,7 +149,6 @@ phase_info = {
             'mass_defect_ref': (150_000, 'lbm'),
             'distance_bounds': ((0, 500.0), 'NM'),
             'distance_ref': (10, 'NM'),
-            'distance_ref0': (0, 'NM'),
         },
         'initial_guesses': {
             'time': ([1.0, 2.0], 'min'),
@@ -153,26 +158,23 @@ phase_info = {
         },
     },
     'climb2': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
             'num_segments': 3,
             'order': 3,
             'EAS_target': (270, 'kn'),
-            'mach_cruise': 0.8,
-            'target_mach': True,
+            'mach_target': 0.8,
             'required_available_climb_rate': (0.1, 'ft/min'),
             'time_duration_bounds': ((200, 17_000), 's'),
             'time_duration_ref': (5000, 's'),
             'altitude_final': (37.5e3, 'ft'),
             'altitude_bounds': ((9000.0, 40000.0), 'ft'),
             'altitude_ref': (30000, 'ft'),
-            'altitude_ref0': (0, 'ft'),
             'mass_bounds': ((0, None), 'lbm'),
             'mass_ref': (150_000, 'lbm'),
             'mass_defect_ref': (150_000, 'lbm'),
             'distance_bounds': ((10.0, 1000.0), 'NM'),
             'distance_ref': (500, 'NM'),
-            'distance_ref0': (0, 'NM'),
             'distance_defect_ref': (500, 'NM'),
         },
         'initial_guesses': {
@@ -183,42 +185,40 @@ phase_info = {
         },
     },
     'cruise': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
+            'phase_type': PhaseType.SIMPLE_CRUISE,
             'alt_cruise': (37.5e3, 'ft'),
             'mach_cruise': 0.8,
+            'mass_bounds': ((0, None), 'lbm'),
+            'mass_ref': (150_000, 'lbm'),
+            'time_duration_bounds': ((0.0, 15.0), 'h'),
+            'time_duration_ref': (8, 'h'),
         },
         'initial_guesses': {
-            # [Initial mass, delta mass] for special cruise phase.
-            'mass': ([171481.0, -35000], 'lbm'),
-            'initial_distance': (200.0e3, 'ft'),
-            'initial_time': (1516.0, 's'),
-            'altitude': (37.5e3, 'ft'),
-            'mach': (0.8, 'unitless'),
+            'mass': ([171481.0, 135000], 'lbm'),
+            'time': ([1516.0, 26500.0], 's'),
         },
     },
     'desc1': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
             'num_segments': 3,
             'order': 3,
-            'EAS_limit': (350, 'kn'),
-            'mach_cruise': 0.8,
+            'EAS_target': (350, 'kn'),
+            'mach_target': 0.8,
             'input_speed_type': SpeedType.MACH,
             'time_duration_bounds': ((300.0, 900.0), 's'),
             'time_duration_ref': (1000, 's'),
             'altitude_final': (10.0e3, 'ft'),
             'altitude_bounds': ((1000.0, 40_000.0), 'ft'),
             'altitude_ref': (30_000, 'ft'),
-            'altitude_ref0': (0, 'ft'),
             'altitude_constraint_ref': (10000, 'ft'),
             'mass_bounds': ((0, None), 'lbm'),
             'mass_ref': (140_000, 'lbm'),
-            'mass_ref0': (0, 'lbm'),
             'mass_defect_ref': (140_000, 'lbm'),
-            'distance_bounds': ((3000.0, 5000.0), 'NM'),
+            'distance_bounds': ((0.0, 5000.0), 'NM'),
             'distance_ref': (mission_distance, 'NM'),
-            'distance_ref0': (0, 'NM'),
             'distance_defect_ref': (100, 'NM'),
         },
         'initial_guesses': {
@@ -230,12 +230,12 @@ phase_info = {
         },
     },
     'desc2': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'cruise'}},
+        'subsystem_options': {'aerodynamics': {'method': 'cruise'}},
         'user_options': {
             'num_segments': 1,
             'order': 7,
-            'EAS_limit': (250, 'kn'),
-            'mach_cruise': 0.80,
+            'EAS_target': (250, 'kn'),
+            'mach_target': 0.80,
             'input_speed_type': SpeedType.EAS,
             'time_duration_bounds': ((100.0, 5000), 's'),
             'time_duration_ref': (500, 's'),
@@ -283,10 +283,10 @@ def phase_info_parameterization(phase_info, post_mission_info, aviary_inputs):
         Modified phase_info that has been changed to match the new mission
         parameters
     """
-    range_cruise = aviary_inputs.get_val(Mission.Design.RANGE, units='NM')
-    alt_cruise = aviary_inputs.get_val(Mission.Design.CRUISE_ALTITUDE, units='ft')
-    gross_mass = aviary_inputs.get_val(Mission.Design.GROSS_MASS, units='lbm')
-    mach_cruise = aviary_inputs.get_val(Mission.Design.MACH)
+    range_cruise = aviary_inputs.get_val(Aircraft.Design.RANGE, units='NM')
+    alt_cruise = aviary_inputs.get_val(Aircraft.Design.CRUISE_ALTITUDE, units='ft')
+    gross_mass = aviary_inputs.get_val(Aircraft.Design.GROSS_MASS, units='lbm')
+    mach_cruise = aviary_inputs.get_val(Aircraft.Design.MACH)
 
     # Range
     old_range_cruise = phase_info['desc2']['initial_guesses']['distance'][0][1]
@@ -303,11 +303,11 @@ def phase_info_parameterization(phase_info, post_mission_info, aviary_inputs):
         range_scale = range_cruise / old_range_cruise
 
     # Altitude
-    old_alt_cruise = phase_info['climb2']['user_options']['altitude_final'][0]
+    old_alt_cruise = phase_info['cruise']['user_options']['alt_cruise'][0]
     if alt_cruise != old_alt_cruise:
         phase_info['climb2']['user_options']['altitude_final'] = (alt_cruise, 'ft')
         phase_info['climb2']['initial_guesses']['altitude'] = ([10.0e3, alt_cruise], 'ft')
-        phase_info['cruise']['initial_guesses']['altitude'] = (alt_cruise, 'ft')
+        phase_info['cruise']['user_options']['alt_cruise'] = (alt_cruise, 'ft')
         phase_info['desc1']['initial_guesses']['altitude'] = ([alt_cruise, 10.0e3], 'ft')
 
         # TODO - Could adjust time guesses/bounds in climb2 and desc2.
@@ -331,8 +331,8 @@ def phase_info_parameterization(phase_info, post_mission_info, aviary_inputs):
         phase_info['desc2']['initial_guesses']['mass'] = (end_mass, 'lbm')
 
     # Mach
-    old_mach_cruise = phase_info['cruise']['initial_guesses']['mach'][0]
+    old_mach_cruise = phase_info['cruise']['user_options']['mach_cruise']
     if mach_cruise != old_mach_cruise:
-        phase_info['cruise']['initial_guesses']['mach'] = (mach_cruise, 'unitless')
+        phase_info['cruise']['user_options']['mach_cruise'] = (mach_cruise, 'unitless')
 
     return phase_info, post_mission_info

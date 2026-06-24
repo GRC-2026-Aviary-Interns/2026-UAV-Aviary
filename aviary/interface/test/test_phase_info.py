@@ -9,20 +9,19 @@ from copy import deepcopy
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
-from aviary.models.missions.height_energy_default import (
-    phase_info as ph_in_height_energy,
+from aviary.models.missions.energy_state_default import (
+    phase_info as ph_in_energy_state,
 )
-from aviary.models.missions.height_energy_default import (
-    phase_info_parameterization as phase_info_parameterization_height_energy,
+from aviary.models.missions.energy_state_default import (
+    phase_info_parameterization as phase_info_parameterization_energy_state,
 )
 from aviary.models.missions.two_dof_default import phase_info as ph_in_two_dof
 from aviary.models.missions.two_dof_default import (
     phase_info_parameterization as phase_info_parameterization_two_dof,
 )
-from aviary.interface.methods_for_level2 import AviaryProblem
-from aviary.mission.phase_builder_base import PhaseBuilderBase as PhaseBuilder
-from aviary.mission.phase_builder_base import phase_info_to_builder
-from aviary.variable_info.variables import Mission
+from aviary.core.aviary_problem import AviaryProblem
+from aviary.mission.phase_builder import PhaseBuilder as PhaseBuilder
+from aviary.variable_info.variables import Aircraft, Mission
 
 
 @use_tempdirs
@@ -34,23 +33,25 @@ class TestParameterizePhaseInfo(unittest.TestCase):
 
         csv_path = 'models/aircraft/small_single_aisle/small_single_aisle_GASP.csv'
 
-        prob.load_inputs(csv_path, phase_info)
-        prob.check_and_preprocess_inputs()
+        prob.load_inputs(
+            csv_path, phase_info, phase_info_modifier=phase_info_parameterization_two_dof
+        )
 
         # We can set some crazy vals, since we aren't going to optimize.
-        prob.aviary_inputs.set_val(Mission.Design.RANGE, 5000, 'km')
-        prob.aviary_inputs.set_val(Mission.Design.CRUISE_ALTITUDE, 31000, units='ft')
-        prob.aviary_inputs.set_val(Mission.Design.GROSS_MASS, 120000, 'lbm')
-        prob.aviary_inputs.set_val(Mission.Design.MACH, 0.6, 'unitless')
+        prob.aviary_inputs.set_val(Aircraft.Design.RANGE, 5000, 'km')
+        prob.aviary_inputs.set_val(Aircraft.Design.CRUISE_ALTITUDE, 31000, units='ft')
+        prob.aviary_inputs.set_val(Aircraft.Design.GROSS_MASS, 120000, 'lbm')
+        prob.aviary_inputs.set_val(Aircraft.Design.MACH, 0.6, 'unitless')
+
+        prob.check_and_preprocess_inputs()
 
         prob.add_pre_mission_systems()
-        prob.add_phases(phase_info_parameterization=phase_info_parameterization_two_dof)
+        prob.add_phases()
         prob.add_post_mission_systems()
 
         prob.link_phases()
 
         prob.setup()
-        prob.set_initial_guesses()
 
         prob.run_model()
 
@@ -63,32 +64,34 @@ class TestParameterizePhaseInfo(unittest.TestCase):
         assert_near_equal(
             prob.get_val('traj.groundroll.timeseries.input_values:mass', units='lbm')[0], 120000.0
         )
-        assert_near_equal(prob.get_val('traj.cruise.rhs.mach')[0], 0.6)
+        assert_near_equal(prob.get_val('traj.cruise.timeseries.mach')[0], 0.6)
 
-    def test_phase_info_parameterization_height_energy(self):
-        phase_info = deepcopy(ph_in_height_energy)
+    def test_phase_info_parameterization_energy_state(self):
+        phase_info = deepcopy(ph_in_energy_state)
 
         prob = AviaryProblem()
 
-        csv_path = 'models/aircraft/test_aircraft/aircraft_for_bench_FwFm.csv'
+        csv_path = 'validation_cases/validation_data/test_models/aircraft_for_bench_FwFm.csv'
 
-        prob.load_inputs(csv_path, phase_info)
-        prob.check_and_preprocess_inputs()
+        prob.load_inputs(
+            csv_path, phase_info, phase_info_modifier=phase_info_parameterization_energy_state
+        )
 
         # We can set some crazy vals, since we aren't going to optimize.
-        prob.aviary_inputs.set_val(Mission.Design.RANGE, 5000.0, 'km')
-        prob.aviary_inputs.set_val(Mission.Design.CRUISE_ALTITUDE, 31000.0, units='ft')
-        prob.aviary_inputs.set_val(Mission.Design.GROSS_MASS, 195000.0, 'lbm')
-        prob.aviary_inputs.set_val(Mission.Summary.CRUISE_MACH, 0.6, 'unitless')
+        prob.aviary_inputs.set_val(Aircraft.Design.RANGE, 5000.0, 'km')
+        prob.aviary_inputs.set_val(Aircraft.Design.CRUISE_ALTITUDE, 31000.0, units='ft')
+        prob.aviary_inputs.set_val(Aircraft.Design.GROSS_MASS, 195000.0, 'lbm')
+        prob.aviary_inputs.set_val(Aircraft.Design.CRUISE_MACH, 0.6, 'unitless')
+
+        prob.check_and_preprocess_inputs()
 
         prob.add_pre_mission_systems()
-        prob.add_phases(phase_info_parameterization=phase_info_parameterization_height_energy)
+        prob.add_phases()
         prob.add_post_mission_systems()
 
         prob.link_phases()
 
         prob.setup()
-        prob.set_initial_guesses()
 
         prob.run_model()
 
@@ -117,19 +120,15 @@ class TestPhaseInfoAPI(unittest.TestCase):
         }
         prob = AviaryProblem()
 
-        csv_path = 'models/test_aircraft/aircraft_for_bench_FwFm.csv'
+        csv_path = 'validation_cases/validation_data/test_models/aircraft_for_bench_FwFm.csv'
 
         prob.load_inputs(csv_path, phase_info)
+
         prob.check_and_preprocess_inputs()
 
-        prob.add_pre_mission_systems()
-        prob.add_phases()
-        prob.add_post_mission_systems()
-
-        prob.link_phases()
+        prob.build_model()
 
         prob.setup()
-        prob.set_initial_guesses()
 
         prob.run_aviary_problem()
 

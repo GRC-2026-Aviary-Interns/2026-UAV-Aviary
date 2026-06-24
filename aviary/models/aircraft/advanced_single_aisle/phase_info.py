@@ -1,42 +1,44 @@
-from aviary.variable_info.variables import Mission
+from aviary.variable_info.variables import Aircraft, Mission
 
-# defaults for height energy based phases
+# defaults for energy-state based phases
 
 phase_info = {
     'pre_mission': {'include_takeoff': True, 'optimize_mass': True},
     'climb': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'computed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'computed'}},
         'user_options': {
             'num_segments': 6,
             'order': 3,
             'mach_optimize': True,
-            'mach_bounds': ((0.18, 0.81), 'unitless'),
+            'mach_ref': (1.0, 'unitless'),
+            'mach_bounds': ((0.2, 0.79), 'unitless'),
             'altitude_optimize': True,
             'altitude_bounds': ((0.0, 37000.0), 'ft'),
+            'mass_ref': (150000, 'lbm'),
             'throttle_enforcement': 'path_constraint',
-            'time_initial_bounds': ((0.0, 0.0), 'min'),
-            'time_duration_bounds': ((12.1, 60.0), 'min'),
+            'time_initial': (0.0, 'min'),
+            'time_duration_bounds': ((12.1, 30.0), 'min'),
             'no_descent': True,
         },
         'initial_guesses': {
-            'time': ([0, 40.0], 'min'),
+            'time': ([0, 30.0], 'min'),
             'altitude': ([35, 35000.0], 'ft'),
             'mach': ([0.2, 0.79], 'unitless'),
         },
     },
     'cruise': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'computed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'computed'}},
         'user_options': {
             'num_segments': 1,
             'order': 3,
             'mach_optimize': False,
             'mach_initial': (0.79, 'unitless'),
-            'mach_bounds': ((0.77, 0.81), 'unitless'),
+            'mach_bounds': ((0.78, 0.80), 'unitless'),
             'altitude_optimize': False,
             'altitude_initial': (35000.0, 'ft'),
-            'altitude_bounds': ((34000.0, 36000.0), 'ft'),
+            'mass_ref': (150000, 'lbm'),
             'throttle_enforcement': 'boundary_constraint',
-            'time_initial_bounds': ((12.1, 60.0), 'min'),
+            'time_initial_bounds': ((12.1, 45.0), 'min'),
             'time_duration_bounds': ((203.1, 812.4), 'min'),
         },
         'initial_guesses': {
@@ -45,11 +47,12 @@ phase_info = {
         },
     },
     'descent': {
-        'subsystem_options': {'core_aerodynamics': {'method': 'computed'}},
+        'subsystem_options': {'aerodynamics': {'method': 'computed'}},
         'user_options': {
             'num_segments': 5,
             'order': 3,
             'mach_optimize': True,
+            'mach_ref': (1.0, 'unitless'),
             'mach_initial': (0.79, 'unitless'),
             'mach_final': (0.3, 'unitless'),
             'mach_bounds': ((0.3, 0.79), 'unitless'),
@@ -57,10 +60,15 @@ phase_info = {
             'altitude_initial': (35000.0, 'ft'),
             'altitude_final': (35.0, 'ft'),
             'altitude_bounds': ((0.0, 38000.0), 'ft'),
+            'mass_ref': (150000, 'lbm'),
             'throttle_enforcement': 'path_constraint',
             'time_initial_bounds': ((215.1, 872.4), 'min'),
-            'time_duration_bounds': ((14.6, 58.5), 'min'),
+            'time_duration_bounds': ((14.6, 45.0), 'min'),
             'no_climb': True,
+        },
+        'initial_guesses': {
+            'altitude': ([35000.0, 35.0], 'ft'),
+            'mach': ([0.79, 0.3], 'unitless'),
         },
     },
     'post_mission': {
@@ -93,12 +101,12 @@ def phase_info_parameterization(phase_info, post_mission_info, aviary_inputs):
         the new mission parameters
     """
 
-    alt_cruise = aviary_inputs.get_val(Mission.Design.CRUISE_ALTITUDE, units='ft')
-    mach_cruise = aviary_inputs.get_val(Mission.Summary.CRUISE_MACH)
+    alt_cruise = aviary_inputs.get_val(Aircraft.Design.CRUISE_ALTITUDE, units='ft')
+    mach_cruise = aviary_inputs.get_val(Aircraft.Design.CRUISE_MACH)
 
     # Range
     old_range_cruise, range_units = post_mission_info['target_range']
-    range_cruise = aviary_inputs.get_val(Mission.Design.RANGE, units=range_units)
+    range_cruise = aviary_inputs.get_val(Aircraft.Design.RANGE, units=range_units)
     if range_cruise != old_range_cruise:
         new_val = post_mission_info['target_range'][0] * range_cruise / old_range_cruise
         post_mission_info['target_range'] = (new_val, range_units)

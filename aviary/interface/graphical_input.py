@@ -17,6 +17,12 @@ from matplotlib.figure import Figure
 # used for unit conversion of numerical data
 from openmdao.utils.units import convert_units
 
+try:
+    from numpy import trapz
+except ImportError:
+    # Trapz is deprecated in the latest numpy
+    from numpy import trapezoid as trapz
+
 
 def get_screen_geometry():
     """
@@ -200,7 +206,7 @@ class AviaryMissionEditor(tk.Tk):
             'labels': ['Time', 'Altitude', 'Mach'],
             'units': ['min', 'ft', 'unitless'],
             'limits': [400, 50e3, 1.0],
-            'rounding': [0, 0, 2],
+            'rounding': [3, 3, 3],
         }
 
         self.advanced_options = {
@@ -813,7 +819,9 @@ class AviaryMissionEditor(tk.Tk):
         """Returns a rounded value based on which variable the value belongs to.
         Uses rounding amount specified in data_info.
         """
-        return format(value, '.' + str(int(self.data_info['rounding'][col].get()) + extra) + 'f')
+        precision = int(self.data_info['rounding'][col].get()) + extra
+        width = 8
+        return f'{value:{width}.{precision}g}'
 
     # ----------------------
     # Popup related functions
@@ -1391,43 +1399,49 @@ class AviaryMissionEditor(tk.Tk):
                     'Python File does not contain a global dictionary called phase_info!'
                 )
             if phase_info:
-                init = False
+                first_phase = True
                 idx = 0
                 ylabs = ['altitude', 'mach']
                 self.phase_order_list = []
                 units = [None] * 3
-                for phase_dict in phase_info.values():
-                    if 'initial_guesses' in phase_dict:  # not a pre/post mission dict
-                        self.advanced_options['distance_solve_segments'].set(
-                            value=phase_dict['user_options']['distance_solve_segments']
-                        )
-                        self.advanced_options['polynomial_order'].set(
-                            value=phase_dict['user_options']['polynomial_order']
-                        )
-                        self.phase_order_list.append(phase_dict['user_options']['order'])
+                for name, phase_dict in phase_info.items():
+                    if name in ['pre_mission', 'post_mission']:
+                        # Skip pre/post
+                        continue
 
-                        timevals, units[0] = phase_dict['initial_guesses']['time']
-                        if (
-                            not init
-                        ):  # for first run initialize internal lists with correct num of elements
-                            numpts = phase_dict['user_options']['num_segments'] + 1
-                            self.data = [[0] * numpts for _ in range(self.num_dep_vars + 1)]
-                            bool_list = [[0] * (numpts - 1) for _ in range(self.num_dep_vars)]
-                            self.data[0][0] = timevals[0]
-                            for i in range(self.num_dep_vars):
-                                self.data[i + 1][0], units[i + 1] = phase_dict['user_options'][
-                                    'initial_' + ylabs[i]
-                                ]
-                            init = True
+                    usr_opts = phase_dict['user_options']
 
-                        self.data[0][idx + 1] = timevals[1] + timevals[0]
+                    value = usr_opts.get('distance_solve_segments', None)
+                    if value is not None:
+                        self.advanced_options['distance_solve_segments'].set(value=value)
+
+                    mach_poly = usr_opts.get('mach_polynomial_order', None)
+                    alt_poly = usr_opts.get('altitude_polynomial_order', None)
+
+                    if mach_poly is not None:
+                        self.advanced_options['polynomial_order'].set(value=mach_poly)
+                    elif alt_poly is not None:
+                        self.advanced_options['polynomial_order'].set(value=alt_poly)
+
+                    self.phase_order_list.append(usr_opts['order'])
+
+                    timevals, units[0] = phase_dict['initial_guesses']['time']
+                    if first_phase:
+                        # For first phase, initialize internal lists with correct num of elements
+                        numpts = usr_opts['num_segments'] + 1
+                        self.data = [[0] * numpts for _ in range(self.num_dep_vars + 1)]
+                        bool_list = [[0] * (numpts - 1) for _ in range(self.num_dep_vars)]
+                        self.data[0][0] = timevals[0]
                         for i in range(self.num_dep_vars):
-                            self.data[i + 1][idx + 1] = phase_dict['user_options'][
-                                'final_' + ylabs[i]
-                            ][0]
-                            bool_list[i][idx] = phase_dict['user_options']['optimize_' + ylabs[i]]
+                            self.data[i + 1][0], units[i + 1] = usr_opts[f'{ylabs[i]}_initial']
+                        first_phase = False
 
-                        idx += 1
+                    self.data[0][idx + 1] = timevals[1] + timevals[0]
+                    for i in range(self.num_dep_vars):
+                        self.data[i + 1][idx + 1] = usr_opts[f'{ylabs[i]}_final'][0]
+                        bool_list[i][idx] = usr_opts[f'{ylabs[i]}_optimize']
+
+                    idx += 1
 
                 self.advanced_options['constrain_range'].set(
                     value=phase_info['post_mission']['constrain_range']
@@ -1625,7 +1639,7 @@ def create_phase_info(
         phase_name = f'{phase_type}_{phase_count}'
 
         phase_info[phase_name] = {
-            'subsystem_options': {'core_aerodynamics': {'method': 'computed'}},
+            'subsystem_options': {'aerodynamics': {'method': 'computed'}},
             'user_options': {
                 'num_segments': num_segments,
                 'order': orders[i],
@@ -1719,7 +1733,7 @@ def estimate_total_range_trapezoidal(times, mach_numbers, units):
     speeds = np.array(mach_numbers) * speed_of_sound
 
     # Use numpy's trapz function to integrate
-    total_range = np.trapz(speeds, times_sec)  # in meters
+    total_range = trapz(speeds, times_sec)  # in meters
     range_unit = units[1]
     # m and ft are small units for range, change to larger ones
     if range_unit == 'm':
