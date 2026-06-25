@@ -192,11 +192,11 @@ class RCPropMission(om.Group):
         self.connect('esc_max.current_out', 'motor_max.current')
         #TODO Alex from phase builder base import add_control
 
-        self.add_constraint('power_net', equals=0, ref=1e2)
+        # self.add_constraint('power_net', equals=0, ref=1e2)
         self.add_constraint('power_net_max', lower=0, ref=1e2)
         
         self.add_constraint('current_constraint', upper=0, ref=1e2)
-        self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=1, upper=125, ref=1e3, units='rps')
+        self.add_constraint(Dynamic.Vehicle.Propulsion.RPM_MAX, lower=60, upper=15000, ref=1e4, units='rpm')
 
         #Constraints to prevent ill-fated surrogate model predictions
         self.add_constraint('ct_max', lower=0, upper=0.12, ref=1.0, units='unitless')

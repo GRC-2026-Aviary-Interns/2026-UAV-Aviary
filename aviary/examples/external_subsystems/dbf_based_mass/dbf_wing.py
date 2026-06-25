@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from pathlib import Path
 
 import openmdao.api as om
 from openmdao.utils.cs_safe import abs as cs_abs
@@ -105,7 +106,16 @@ class DBFWingMass(om.ExplicitComponent):
 
 
     def load_airfoil_csv(self, file_path, delimiter=',', header=False):
-        if not os.path.exists(file_path):
+        file_path = Path(file_path)
+
+        # If the path is relative, look for the CSV in the same folder as this dbf_wing.py file.
+        if not file_path.is_absolute():
+            local_airfoil_path = Path(__file__).resolve().parent / file_path.name
+
+            if local_airfoil_path.exists():
+                file_path = local_airfoil_path
+
+        if not file_path.exists():
             raise FileNotFoundError(f"Airfoil CSV file '{file_path}' not found.")
 
         skip = 1 if header else 0

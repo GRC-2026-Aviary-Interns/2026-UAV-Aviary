@@ -344,9 +344,9 @@ pre_mission
           aircraft:landing_gear:main_gear_oleo_length            [0.]                      input   inch         aircraft:landing_gear:main_gear_oleo_length                                 
           aircraft:landing_gear:nose_gear_oleo_length            [0.]                      output  inch         pre_mission.AUTO_OVERRIDE:aircraft:landing_gear:nose_gear_oleo_length       
         landing_mass
-          mission:design:gross_mass                              [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+          mission:design:gross_mass                              [10.88519724]             input   lbm          mission:design:gross_mass                                                   
           aircraft:design:landing_to_takeoff_mass_ratio          [0.99999342]              input   unitless     aircraft:design:landing_to_takeoff_mass_ratio                               
-          aircraft:design:touchdown_mass                         [10.88512888]             output  lbm          pre_mission.AUTO_OVERRIDE:aircraft:design:touchdown_mass                    
+          aircraft:design:touchdown_mass                         [10.88512558]             output  lbm          pre_mission.AUTO_OVERRIDE:aircraft:design:touchdown_mass                    
         landing_gear
           aircraft:landing_gear:main_gear_oleo_length            [0.]                      input   inch         aircraft:landing_gear:main_gear_oleo_length                                 
           aircraft:landing_gear:main_gear_mass_scaler            [0.]                      input   unitless     aircraft:landing_gear:main_gear_mass_scaler                                 
@@ -357,7 +357,7 @@ pre_mission
           aircraft:landing_gear:nose_gear_mass                   [0.]                      output  lbm          aircraft:landing_gear:nose_gear_mass                                        
       surf_ctrl
         aircraft:wing:surface_ctrl_mass_scaler                   [0.]                      input   unitless     aircraft:wing:surface_ctrl_mass_scaler                                      
-        mission:design:gross_mass                                [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+        mission:design:gross_mass                                [10.88519724]             input   lbm          mission:design:gross_mass                                                   
         aircraft:wing:control_surface_area_ratio                 [0.1]                     input   unitless     aircraft:wing:control_surface_area_ratio                                    
         aircraft:wing:area                                       [7.0007397]               input   ft**2        aircraft:wing:area                                                          
         aircraft:wing:surface_ctrl_mass                          [0.]                      output  lbm          aircraft:wing:surface_ctrl_mass                                             
@@ -370,23 +370,23 @@ pre_mission
       htail
         aircraft:horizontal_tail:area                            [1.68369087]              input   ft**2        aircraft:horizontal_tail:area                                               
         aircraft:horizontal_tail:taper_ratio                     [1.]                      input   unitless     aircraft:horizontal_tail:taper_ratio                                        
-        mission:design:gross_mass                                [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+        mission:design:gross_mass                                [10.88519724]             input   lbm          mission:design:gross_mass                                                   
         aircraft:horizontal_tail:mass_scaler                     [0.]                      input   unitless     aircraft:horizontal_tail:mass_scaler                                        
         aircraft:horizontal_tail:mass                            [0.]                      output  lbm          pre_mission.EXTERNAL_OVERRIDE:aircraft:horizontal_tail:mass                 
       vert_tail
         aircraft:vertical_tail:area                              [0.67812636]              input   ft**2        aircraft:vertical_tail:area                                                 
         aircraft:vertical_tail:taper_ratio                       [0.33]                    input   unitless     aircraft:vertical_tail:taper_ratio                                          
         aircraft:vertical_tail:mass_scaler                       [0.]                      input   unitless     aircraft:vertical_tail:mass_scaler                                          
-        mission:design:gross_mass                                [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+        mission:design:gross_mass                                [10.88519724]             input   lbm          mission:design:gross_mass                                                   
         aircraft:vertical_tail:mass                              [0.]                      output  lbm          pre_mission.EXTERNAL_OVERRIDE:aircraft:vertical_tail:mass                   
       canard
-        mission:design:gross_mass                                [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+        mission:design:gross_mass                                [10.88519724]             input   lbm          mission:design:gross_mass                                                   
         aircraft:canard:area                                     [0.]                      input   ft**2        aircraft:canard:area                                                        
         aircraft:canard:taper_ratio                              [0.]                      input   unitless     aircraft:canard:taper_ratio                                                 
         aircraft:canard:mass_scaler                              [1.]                      input   unitless     aircraft:canard:mass_scaler                                                 
         aircraft:canard:mass                                     [0.]                      output  lbm          aircraft:canard:mass                                                        
       fin
-        mission:design:gross_mass                                [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+        mission:design:gross_mass                                [10.88519724]             input   lbm          mission:design:gross_mass                                                   
         aircraft:fins:area                                       [0.]                      input   ft**2        aircraft:fins:area                                                          
         aircraft:fins:taper_ratio                                [10.]                     input   unitless     aircraft:fins:taper_ratio                                                   
         aircraft:fins:mass_scaler                                [0.]                      input   unitless     aircraft:fins:mass_scaler                                                   
@@ -424,11 +424,11 @@ pre_mission
         wing_shear_control
           aircraft:wing:composite_fraction                       [0.2]                     input   unitless     aircraft:wing:composite_fraction                                            
           aircraft:wing:control_surface_area                     [0.]                      input   ft**2        aircraft:wing:control_surface_area                                          
-          mission:design:gross_mass                              [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+          mission:design:gross_mass                              [10.88519724]             input   lbm          mission:design:gross_mass                                                   
           aircraft:wing:shear_control_mass_scaler                [0.]                      input   unitless     aircraft:wing:shear_control_mass_scaler                                     
           aircraft:wing:shear_control_mass                       [0.]                      output  lbm          aircraft:wing:shear_control_mass                                            
         wing_bending
-          mission:design:gross_mass                              [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+          mission:design:gross_mass                              [10.88519724]             input   lbm          mission:design:gross_mass                                                   
           aircraft:wing:aeroelastic_tailoring_factor             [0.]                      input   unitless     aircraft:wing:aeroelastic_tailoring_factor                                  
           aircraft:wing:bending_material_factor                  [9.09991752]              input   unitless     aircraft:wing:bending_material_factor                                       
           aircraft:wing:bending_material_mass_scaler             [0.]                      input   unitless     aircraft:wing:bending_material_mass_scaler                                  
@@ -510,15 +510,15 @@ pre_mission
           aircraft:design:operating_mass                         [10.8852044]              input   lbm          aircraft:design:operating_mass                                              
           aircraft:design:zero_fuel_mass                         [10.8852044]              output  lbm          aircraft:design:zero_fuel_mass                                              
         fuel_mass
-          mission:design:gross_mass                              [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+          mission:design:gross_mass                              [10.88519724]             input   lbm          mission:design:gross_mass                                                   
           aircraft:design:zero_fuel_mass                         [10.8852044]              input   lbm          aircraft:design:zero_fuel_mass                                              
-          mission:design:fuel_mass                               [-3.8581654e-06]          output  lbm          pre_mission.AUTO_OVERRIDE:mission:design:fuel_mass                          
+          mission:design:fuel_mass                               [-7.16219975e-06]         output  lbm          pre_mission.AUTO_OVERRIDE:mission:design:fuel_mass                          
     core_performance
       aircraft:propulsion:total_scaled_sls_thrust                [0.]                      input   lbf          aircraft:propulsion:total_scaled_sls_thrust                                 
-      mission:design:gross_mass                                  [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+      mission:design:gross_mass                                  [10.88519724]             input   lbm          mission:design:gross_mass                                                   
       aircraft:wing:area                                         [7.0007397]               input   ft**2        aircraft:wing:area                                                          
       aircraft:design:thrust_to_weight_ratio                     [0.]                      output  unitless     aircraft:design:thrust_to_weight_ratio                                      
-      aircraft:design:wing_loading                               [1.55486434]              output  lbf/ft**2    aircraft:design:wing_loading                                                
+      aircraft:design:wing_loading                               [1.55486387]              output  lbf/ft**2    aircraft:design:wing_loading                                                
 traj
   param_comp
     parameters:aircraft:wing:area                                [7.0007397]               input   ft**2        aircraft:wing:area                                                          
@@ -598,11 +598,11 @@ traj
                                                                  array([[1.35989475],
                                                                         [1.20898703],
                                                                         [0.99999973]])
-        controls:current_flow_max                                |49.04892712|             input   A            traj.climb.controls:current_flow_max                                        
+        controls:current_flow_max                                |49.04900606|             input   A            traj.climb.controls:current_flow_max                                        
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.78467029],
-                                                                        [28.83734932]])
+                                                                 array([[28.32343365],
+                                                                        [27.78506319],
+                                                                        [28.83710051]])
         control_values:mach                                      |0.04|                    output  unitless     traj.climb.control_values:mach                                              
                                                                  val:
                                                                  array([[0.02],
@@ -677,10 +677,10 @@ traj
                                                                         [-0.0058733 ]])
         control_rates:current_flow_rate2                         |1.39e-06|                output  A/s**2       traj.climb.control_rates:current_flow_rate2                                 
                                                                  val:
-                                                                 array([[-6.96200237e-07],
-                                                                        [-6.96200237e-07],
-                                                                        [-6.96200237e-07],
-                                                                        [-6.96200237e-07]])
+                                                                 array([[-6.96200375e-07],
+                                                                        [-6.96200375e-07],
+                                                                        [-6.96200375e-07],
+                                                                        [-6.96200375e-07]])
         control_boundary_values:current_flow                     |1.64956217|              output  A            traj.climb.control_comp.control_boundary_values:current_flow                
                                                                  val:
                                                                  array([[1.35989475],
@@ -691,38 +691,38 @@ traj
                                                                         [-0.0058733 ]])
         control_boundary_rates:current_flow_rate2                |9.8e-07|                 output  A/s**2       traj.climb.control_comp.control_boundary_rates:current_flow_rate2           
                                                                  val:
-                                                                 array([[-6.96200237e-07],
-                                                                        [-6.96200237e-07]])
-        control_values:current_flow_max                          |57.2906494|              output  A            traj.climb.control_values:current_flow_max                                  
+                                                                 array([[-6.96200375e-07],
+                                                                        [-6.96200375e-07]])
+        control_values:current_flow_max                          |57.29033647|             output  A            traj.climb.control_values:current_flow_max                                  
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.78467029],
-                                                                        [28.83734932],
-                                                                        [29.6044128 ]])
-        control_rates:current_flow_max_rate                      |0.10557146|              output  A/s          traj.climb.control_rates:current_flow_max_rate                              
+                                                                 array([[28.32343365],
+                                                                        [27.78506319],
+                                                                        [28.83710051],
+                                                                        [29.60367642]])
+        control_rates:current_flow_max_rate                      |0.10550345|              output  A/s          traj.climb.control_rates:current_flow_max_rate                              
                                                                  val:
-                                                                 array([[-0.04195618],
-                                                                        [ 0.0003174 ],
-                                                                        [ 0.05864631],
-                                                                        [ 0.07710721]])
-        control_rates:current_flow_max_rate2                     |0.00326718|              output  A/s**2       traj.climb.control_rates:current_flow_max_rate2                             
+                                                                 array([[-0.04192732],
+                                                                        [ 0.00031855],
+                                                                        [ 0.05860922],
+                                                                        [ 0.07705801]])
+        control_rates:current_flow_max_rate2                     |0.00326504|              output  A/s**2       traj.climb.control_rates:current_flow_max_rate2                             
                                                                  val:
-                                                                 array([[0.00163359],
-                                                                        [0.00163359],
-                                                                        [0.00163359],
-                                                                        [0.00163359]])
-        control_boundary_values:current_flow_max                 |40.97118366|             output  A            traj.climb.control_comp.control_boundary_values:current_flow_max            
+                                                                 array([[0.00163252],
+                                                                        [0.00163252],
+                                                                        [0.00163252],
+                                                                        [0.00163252]])
+        control_boundary_values:current_flow_max                 |40.97065475|             output  A            traj.climb.control_comp.control_boundary_values:current_flow_max            
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [29.6044128 ]])
-        control_boundary_rates:current_flow_max_rate             |0.08778293|              output  A/s          traj.climb.control_comp.control_boundary_rates:current_flow_max_rate        
+                                                                 array([[28.32343365],
+                                                                        [29.60367642]])
+        control_boundary_rates:current_flow_max_rate             |0.08772592|              output  A/s          traj.climb.control_comp.control_boundary_rates:current_flow_max_rate        
                                                                  val:
-                                                                 array([[-0.04195618],
-                                                                        [ 0.07710721]])
-        control_boundary_rates:current_flow_max_rate2            |0.00231024|              output  A/s**2       traj.climb.control_comp.control_boundary_rates:current_flow_max_rate2       
+                                                                 array([[-0.04192732],
+                                                                        [ 0.07705801]])
+        control_boundary_rates:current_flow_max_rate2            |0.00230873|              output  A/s**2       traj.climb.control_comp.control_boundary_rates:current_flow_max_rate2       
                                                                  val:
-                                                                 array([[0.00163359],
-                                                                        [0.00163359]])
+                                                                 array([[0.00163252],
+                                                                        [0.00163252]])
       indep_states
         initial_states:distance                                  [[1.]]                    input   m            traj.climb.initial_states:distance                                          
         states:mass                                              |9.87489132|              output  kg           traj.climb.states:mass                                                      
@@ -755,9 +755,9 @@ traj
                                                                         [493.10124843]])
         staterate_col:mass                                       |0.0|                     output  kg/s         traj.climb.state_interp.staterate_col:mass                                  
                                                                  val:
-                                                                 array([[-1.20356480e-11],
-                                                                        [ 1.63314424e-11],
-                                                                        [-1.06751190e-11]])
+                                                                 array([[-1.20446170e-11],
+                                                                        [ 1.63188420e-11],
+                                                                        [-1.06935931e-11]])
         staterate_col:distance                                   |11.6952598|              output  m/s          traj.climb.state_interp.staterate_col:distance                              
                                                                  val:
                                                                  array([[6.7541476 ],
@@ -874,60 +874,60 @@ traj
             battery_max
               aircraft:battery:voltage                           [22.2]                    input   V            traj.climb.rhs_all.aircraft:battery:voltage                                 
               aircraft:battery:resistance                        [0.05]                    input   ohm          traj.climb.rhs_all.aircraft:battery:resistance                              
-              current_flow                                       |57.2906494|              input   A            traj.climb.rhs_all.current_flow_max                                         
+              current_flow                                       |57.29033647|             input   A            traj.climb.rhs_all.current_flow_max                                         
                                                                  val:
-                                                                 array([28.32342905, 27.78467029, 28.83734932, 29.6044128 ])
-              voltage_out                                        |41.53630766|             output  V            traj.climb.rhs_all.rc_electric.battery_max.voltage_out                      
+                                                                 array([28.32343365, 27.78506319, 28.83710051, 29.60367642])
+              voltage_out                                        |41.53632228|             output  V            traj.climb.rhs_all.rc_electric.battery_max.voltage_out                      
                                                                  val:
-                                                                 array([20.78382855, 20.81076649, 20.75813253, 20.71977936])
-              power                                              |1189.73078883|           output  W            traj.climb.rhs_all.rc_electric.battery_max.power                            
+                                                                 array([20.78382832, 20.81074684, 20.75814497, 20.71981618])
+              power                                              |1189.72481895|           output  W            traj.climb.rhs_all.rc_electric.battery_max.power                            
                                                                  val:
-                                                                 array([588.66929328, 578.22028522, 598.60951909, 613.39690126])
+                                                                 array([588.6693823 , 578.22791608, 598.60471295, 613.38273359])
             esc_max
-              voltage_in                                         |41.53630766|             input   V            traj.climb.rhs_all.esc_max.voltage_in                                       
+              voltage_in                                         |41.53632228|             input   V            traj.climb.rhs_all.esc_max.voltage_in                                       
                                                                  val:
-                                                                 array([20.78382855, 20.81076649, 20.75813253, 20.71977936])
-              current_flow                                       |57.2906494|              input   A            traj.climb.rhs_all.current_flow_max                                         
+                                                                 array([20.78382832, 20.81074684, 20.75814497, 20.71981618])
+              current_flow                                       |57.29033647|             input   A            traj.climb.rhs_all.current_flow_max                                         
                                                                  val:
-                                                                 array([28.32342905, 27.78467029, 28.83734932, 29.6044128 ])
+                                                                 array([28.32343365, 27.78506319, 28.83710051, 29.60367642])
               throttle                                           |2.0|                     input   unitless     traj.climb.rhs_all.full_throttle                                            
                                                                  val:
                                                                  array([1., 1., 1., 1.])
               efficiency                                         |2.00004545|              output  unitless     traj.climb.rhs_all.rc_electric.esc_max.efficiency                           
                                                                  val:
                                                                  array([1.00002272, 1.00002272, 1.00002272, 1.00002272])
-              voltage_out                                        |41.5372515|              output  V            traj.climb.rhs_all.rc_electric.esc_max.voltage_out                          
+              voltage_out                                        |41.53726613|             output  V            traj.climb.rhs_all.rc_electric.esc_max.voltage_out                          
                                                                  val:
-                                                                 array([20.78430083, 20.81123938, 20.75860423, 20.72025018])
-              power                                              |0.02703465|              output  W            traj.climb.rhs_all.rc_electric.esc_max.power                                
+                                                                 array([20.7843006 , 20.81121973, 20.75861667, 20.720287  ])
+              power                                              |0.02703451|              output  W            traj.climb.rhs_all.rc_electric.esc_max.power                                
                                                                  val:
-                                                                 array([0.01337653, 0.01313909, 0.0136024 , 0.01393842])
-              current_out                                        |57.2906494|              output  A            traj.climb.rhs_all.rc_electric.esc_max.current_out                          
+                                                                 array([0.01337653, 0.01313926, 0.01360229, 0.0139381 ])
+              current_out                                        |57.29033647|             output  A            traj.climb.rhs_all.rc_electric.esc_max.current_out                          
                                                                  val:
-                                                                 array([28.32342905, 27.78467029, 28.83734932, 29.6044128 ])
+                                                                 array([28.32343365, 27.78506319, 28.83710051, 29.60367642])
             motor_max
               aircraft:engine:motor:idle_current                 [0.90999999]              input   A            traj.climb.rhs_all.aircraft:engine:motor:idle_current                       
               aircraft:engine:motor:max_cont_current             [64.52187405]             input   A            traj.climb.rhs_all.aircraft:engine:motor:max_cont_current                   
               aircraft:engine:motor:resistance                   [0.05582267]              input   ohm          traj.climb.rhs_all.aircraft:engine:motor:resistance                         
               aircraft:engine:motor:kv                           [165.65316524]            input   rpm/V        traj.climb.rhs_all.aircraft:engine:motor:kv                                 
-              voltage_in                                         |41.5372515|              input   V            traj.climb.rhs_all.motor_max.voltage_in                                     
+              voltage_in                                         |41.53726613|             input   V            traj.climb.rhs_all.motor_max.voltage_in                                     
                                                                  val:
-                                                                 array([20.78430083, 20.81123938, 20.75860423, 20.72025018])
-              current_flow                                       |57.2906494|              input   A            traj.climb.rhs_all.current_flow_max                                         
+                                                                 array([20.7843006 , 20.81121973, 20.75861667, 20.720287  ])
+              current_flow                                       |57.29033647|             input   A            traj.climb.rhs_all.current_flow_max                                         
                                                                  val:
-                                                                 array([28.32342905, 27.78467029, 28.83734932, 29.6044128 ])
-              current                                            |57.2906494|              input   A            traj.climb.rhs_all.motor_max.current                                        
+                                                                 array([28.32343365, 27.78506319, 28.83710051, 29.60367642])
+              current                                            |57.29033647|             input   A            traj.climb.rhs_all.motor_max.current                                        
                                                                  val:
-                                                                 array([28.32342905, 27.78467029, 28.83734932, 29.6044128 ])
-              rotations_per_minute                               |6351.17895984|           output  rpm          traj.climb.rhs_all.rc_electric.rotations_per_minute_max                     
+                                                                 array([28.32343365, 27.78506319, 28.83710051, 29.60367642])
+              rotations_per_minute                               |6351.18405779|           output  rpm          traj.climb.rhs_all.rc_electric.rotations_per_minute_max                     
                                                                  val:
-                                                                 array([3181.07276819, 3190.5172351 , 3172.06372134, 3158.61706188])
-              power                                              |126.56924499|            output  W            traj.climb.rhs_all.rc_electric.motor_max.power                              
+                                                                 array([3181.07268763, 3190.5103474 , 3172.06808305, 3158.62997067])
+              power                                              |126.56818827|            output  W            traj.climb.rhs_all.rc_electric.motor_max.power                              
                                                                  val:
-                                                                 array([-62.25679355, -60.62122752, -63.84715445, -66.2757352 ])
-              current_constraint                                 |71.78136224|             output  A            traj.climb.rhs_all.rc_electric.current_constraint                           
+                                                                 array([-62.25680764, -60.6224085 , -63.84637735, -66.27337226])
+              current_constraint                                 |71.78164074|             output  A            traj.climb.rhs_all.rc_electric.current_constraint                           
                                                                  val:
-                                                                 array([-36.198445  , -36.73720376, -35.68452473, -34.91746125])
+                                                                 array([-36.1984404 , -36.73681085, -35.68477354, -34.91819763])
             propco_max
               temp_diameter                                      |1.016|                   input   m            traj.climb.rhs_all.temp_diameter                                            
                                                                  val:
@@ -935,9 +935,9 @@ traj
               temp_pitch                                         |20.0|                    input   inch         traj.climb.rhs_all.temp_pitch                                               
                                                                  val:
                                                                  array([10., 10., 10., 10.])
-              rotations_per_minute                               |105.85298266|            input   rev/s        traj.climb.rhs_all.rotations_per_minute_max                                 
+              rotations_per_minute                               |105.85306763|            input   rev/s        traj.climb.rhs_all.rotations_per_minute_max                                 
                                                                  val:
-                                                                 array([53.01787947, 53.17528725, 52.86772869, 52.6436177 ])
+                                                                 array([53.01787813, 53.17517246, 52.86780138, 52.64383284])
               velocity                                           |13.60632656|             input   m/s          traj.climb.rhs_all.velocity                                                 
                                                                  val:
                                                                  array([6.80573727, 6.80407574, 6.80178252, 6.80105657])
@@ -948,48 +948,48 @@ traj
               cp_train                                           |2.90234429|              input   unitless     traj.climb.rhs_all.propco_max.cp_train                                      
                                                                  val:
                                                                  array([0.0246, 0.0246, 0.0246, ..., 0.011 , 0.0079, 0.0047], shape=(8616,))
-              ct                                                 |0.12418882|              output  unitless     traj.climb.rhs_all.rc_electric.ct_max                                       
+              ct                                                 |0.12418887|              output  unitless     traj.climb.rhs_all.rc_electric.ct_max                                       
                                                                  val:
-                                                                 array([0.06213674, 0.06223531, 0.06206653, 0.06193868])
+                                                                 array([0.06213674, 0.06223524, 0.06206657, 0.06193881])
               cp                                                 |0.05765001|              output  unitless     traj.climb.rhs_all.rc_electric.cp_max                                       
                                                                  val:
-                                                                 array([0.02882654, 0.02883456, 0.02882385, 0.02881505])
+                                                                 array([0.02882654, 0.02883455, 0.02882386, 0.02881506])
             prop_max
               density                                            |2.442421|                input   kg/m**3      traj.climb.rhs_all.density                                                  
                                                                  val:
                                                                  array([1.22514306, 1.22259956, 1.21909663, 1.21798956])
               aircraft:engine:propeller:diameter                 [0.508]                   input   m            traj.climb.rhs_all.aircraft:engine:propeller:diameter                       
-              rotations_per_minute                               |105.85298266|            input   rev/s        traj.climb.rhs_all.rotations_per_minute_max                                 
+              rotations_per_minute                               |105.85306763|            input   rev/s        traj.climb.rhs_all.rotations_per_minute_max                                 
                                                                  val:
-                                                                 array([53.01787947, 53.17528725, 52.86772869, 52.6436177 ])
-              ct                                                 |0.12418882|              input   unitless     traj.climb.rhs_all.ct_max                                                   
+                                                                 array([53.01787813, 53.17517246, 52.86780138, 52.64383284])
+              ct                                                 |0.12418887|              input   unitless     traj.climb.rhs_all.ct_max                                                   
                                                                  val:
-                                                                 array([0.06213674, 0.06223531, 0.06206653, 0.06193868])
+                                                                 array([0.06213674, 0.06223524, 0.06206657, 0.06193881])
               cp                                                 |0.05765001|              input   unitless     traj.climb.rhs_all.cp_max                                                   
                                                                  val:
-                                                                 array([0.02882654, 0.02883456, 0.02882385, 0.02881505])
-              thrust_net                                         |28.29511271|             output  N            traj.climb.rhs_all.rc_electric.thrust_net_max                               
+                                                                 array([0.02882654, 0.02883455, 0.02882386, 0.02881506])
+              thrust_net                                         |28.2951672|              output  N            traj.climb.rhs_all.rc_electric.thrust_net_max                               
                                                                  val:
-                                                                 array([14.25065606, 14.32833086, 14.08418486, 13.92360862])
-              prop_power                                         |353.16979979|            output  W            traj.climb.rhs_all.rc_electric.prop_power_max                               
+                                                                 array([14.25065516, 14.32825369, 14.08423321, 13.92375078])
+              prop_power                                         |353.17062648|            output  W            traj.climb.rhs_all.rc_electric.prop_power_max                               
                                                                  val:
-                                                                 array([178.05942859, 179.32698755, 175.66316435, 173.22826444])
+                                                                 array([178.05941472, 179.32579674, 175.66390755, 173.23044319])
             power_summation_max
-              power_batt                                         |1189.73078883|           input   W            traj.climb.rhs_all.power_summation_max.power_batt                           
+              power_batt                                         |1189.72481895|           input   W            traj.climb.rhs_all.power_summation_max.power_batt                           
                                                                  val:
-                                                                 array([588.66929328, 578.22028522, 598.60951909, 613.39690126])
-              power_esc                                          |0.02703465|              input   W            traj.climb.rhs_all.power_summation_max.power_esc                            
+                                                                 array([588.6693823 , 578.22791608, 598.60471295, 613.38273359])
+              power_esc                                          |0.02703451|              input   W            traj.climb.rhs_all.power_summation_max.power_esc                            
                                                                  val:
-                                                                 array([0.01337653, 0.01313909, 0.0136024 , 0.01393842])
-              power_motor                                        |126.56924499|            input   W            traj.climb.rhs_all.power_summation_max.power_motor                          
+                                                                 array([0.01337653, 0.01313926, 0.01360229, 0.0139381 ])
+              power_motor                                        |126.56818827|            input   W            traj.climb.rhs_all.power_summation_max.power_motor                          
                                                                  val:
-                                                                 array([-62.25679355, -60.62122752, -63.84715445, -66.2757352 ])
-              prop_power                                         |353.16979979|            input   W            traj.climb.rhs_all.prop_power_max                                           
+                                                                 array([-62.25680764, -60.6224085 , -63.84637735, -66.27337226])
+              prop_power                                         |353.17062648|            input   W            traj.climb.rhs_all.prop_power_max                                           
                                                                  val:
-                                                                 array([178.05942859, 179.32698755, 175.66316435, 173.22826444])
-              power_net                                          |710.32696326|            output  W            traj.climb.rhs_all.rc_electric.power_net_max                                
+                                                                 array([178.05941472, 179.32579674, 175.66390755, 173.23044319])
+              power_net                                          |710.32087226|            output  W            traj.climb.rhs_all.rc_electric.power_net_max                                
                                                                  val:
-                                                                 array([348.36644767, 338.28520924, 359.11280269, 373.90684004])
+                                                                 array([348.36653647, 338.2928501 , 359.10803034, 373.89285624])
             battery
               aircraft:battery:voltage                           [22.2]                    input   V            traj.climb.rhs_all.aircraft:battery:voltage                                 
               aircraft:battery:resistance                        [0.05]                    input   ohm          traj.climb.rhs_all.aircraft:battery:resistance                              
@@ -1113,9 +1113,9 @@ traj
             thrust_net_0                                         |2.65061585|              input   lbf          traj.climb.rhs_all.vectorize_performance.thrust_net_0                       
                                                                  val:
                                                                  array([1.32310424, 1.32452273, 1.32648838, 1.32711253])
-            thrust_net_max_0                                     |6.36099438|              input   lbf          traj.climb.rhs_all.vectorize_performance.thrust_net_max_0                   
+            thrust_net_max_0                                     |6.36100663|              input   lbf          traj.climb.rhs_all.vectorize_performance.thrust_net_max_0                   
                                                                  val:
-                                                                 array([3.20367492, 3.22113691, 3.16625071, 3.13015173])
+                                                                 array([3.20367472, 3.22111957, 3.16626158, 3.13018369])
             fuel_flow_rate_negative_0                            |0.0|                     input   lbm/h        traj.climb.rhs_all.vectorize_performance.fuel_flow_rate_negative_0          
                                                                  val:
                                                                  array([0., 0., 0., 0.])
@@ -1140,12 +1140,12 @@ traj
                                                                         [1.32452273],
                                                                         [1.32648838],
                                                                         [1.32711253]])
-            thrust_net_max                                       |6.36099438|              output  lbf          traj.climb.rhs_all.thrust_net_max                                           
+            thrust_net_max                                       |6.36100663|              output  lbf          traj.climb.rhs_all.thrust_net_max                                           
                                                                  val:
-                                                                 array([[3.20367492],
-                                                                        [3.22113691],
-                                                                        [3.16625071],
-                                                                        [3.13015173]])
+                                                                 array([[3.20367472],
+                                                                        [3.22111957],
+                                                                        [3.16626158],
+                                                                        [3.13018369]])
             fuel_flow_rate_negative                              |0.0|                     output  lbm/h        traj.climb.rhs_all.fuel_flow_rate_negative                                  
                                                                  val:
                                                                  array([[0.],
@@ -1189,12 +1189,12 @@ traj
                                                                         [1.32452273],
                                                                         [1.32648838],
                                                                         [1.32711253]])
-            thrust_net_max                                       |6.36099438|              input   lbf          traj.climb.rhs_all.thrust_net_max                                           
+            thrust_net_max                                       |6.36100663|              input   lbf          traj.climb.rhs_all.thrust_net_max                                           
                                                                  val:
-                                                                 array([[3.20367492],
-                                                                        [3.22113691],
-                                                                        [3.16625071],
-                                                                        [3.13015173]])
+                                                                 array([[3.20367472],
+                                                                        [3.22111957],
+                                                                        [3.16626158],
+                                                                        [3.13018369]])
             fuel_flow_rate_negative                              |0.0|                     input   lbm/h        traj.climb.rhs_all.fuel_flow_rate_negative                                  
                                                                  val:
                                                                  array([[0.],
@@ -1216,9 +1216,9 @@ traj
             thrust_net_total                                     |5.30123169|              output  lbf          traj.climb.rhs_all.thrust_net_total                                         
                                                                  val:
                                                                  array([2.64620849, 2.64904546, 2.65297675, 2.65422505])
-            thrust_net_max_total                                 |12.72198875|             output  lbf          traj.climb.rhs_all.thrust_net_max_total                                     
+            thrust_net_max_total                                 |12.72201325|             output  lbf          traj.climb.rhs_all.thrust_net_max_total                                     
                                                                  val:
-                                                                 array([6.40734985, 6.44227383, 6.33250142, 6.26030347])
+                                                                 array([6.40734944, 6.44223913, 6.33252316, 6.26036739])
             fuel_flow_rate_negative_total                        |0.0|                     output  lbm/h        traj.climb.rhs_all.fuel_flow_rate_negative_total                            
                                                                  val:
                                                                  array([0., 0., 0., 0.])
@@ -1266,28 +1266,28 @@ traj
               mass                                               |9.87489132|              input   kg           traj.climb.rhs_all.mass                                                     
                                                                  val:
                                                                  array([4.93744566, 4.93744566, 4.93744566, 4.93744566])
-              thrust_net_total                                   |56.59022543|             input   N            traj.climb.rhs_all.thrust_net_max_total                                     
+              thrust_net_total                                   |56.59033441|             input   N            traj.climb.rhs_all.thrust_net_max_total                                     
                                                                  val:
-                                                                 array([28.50131211, 28.65666172, 28.16836972, 27.84721724])
+                                                                 array([28.50131031, 28.65650738, 28.16846643, 27.84750155])
               drag                                               |11.67545618|             input   N            traj.climb.rhs_all.drag                                                     
                                                                  val:
                                                                  array([5.82037029, 5.83153669, 5.8470172 , 5.85193442])
-              specific_energy_rate                               |6.3109082|               output  m/s          traj.climb.rhs_all.specific_energy_rate_excess                              
+              specific_energy_rate                               |6.31092335|              output  m/s          traj.climb.rhs_all.specific_energy_rate_excess                              
                                                                  val:
-                                                                 array([3.18796291, 3.20744561, 3.13559702, 3.08946254])
+                                                                 array([3.18796265, 3.20742392, 3.13561061, 3.08950247])
             altitude_rate_max
-              specific_energy_rate                               |6.3109082|               input   m/s          traj.climb.rhs_all.mission_EOM.specific_energy_rate_excess                  
+              specific_energy_rate                               |6.31092335|              input   m/s          traj.climb.rhs_all.mission_EOM.specific_energy_rate_excess                  
                                                                  val:
-                                                                 array([3.18796291, 3.20744561, 3.13559702, 3.08946254])
+                                                                 array([3.18796265, 3.20742392, 3.13561061, 3.08950247])
               velocity_rate                                      |0.0|                     input   m/s**2       traj.climb.rhs_all.velocity_rate                                            
                                                                  val:
                                                                  array([ 1.29586529e-16, -3.23887231e-17, -3.23778069e-17,  1.29497405e-16])
               velocity                                           |13.60632656|             input   m/s          traj.climb.rhs_all.velocity                                                 
                                                                  val:
                                                                  array([6.80573727, 6.80407574, 6.80178252, 6.80105657])
-              altitude_rate                                      |6.3109082|               output  m/s          traj.climb.rhs_all.altitude_rate_max                                        
+              altitude_rate                                      |6.31092335|              output  m/s          traj.climb.rhs_all.altitude_rate_max                                        
                                                                  val:
-                                                                 array([3.18796291, 3.20744561, 3.13559702, 3.08946254])
+                                                                 array([3.18796265, 3.20742392, 3.13561061, 3.08950247])
         throttle_balance
           thrust                                                 |5.30123169|              input   lbf          traj.climb.rhs_all.thrust_net_total                                         
                                                                  val:
@@ -1297,7 +1297,7 @@ traj
                                                                  array([2.64620849, 2.64904546, 2.65297675, 2.65422506])
           thrust_residual                                        |1e-08|                   output  lbf          traj.climb.rhs_all.thrust_residual                                          
                                                                  val:
-                                                                 array([-8.41736902e-10,  2.25211894e-09, -3.93557542e-09,  2.53882693e-09])
+                                                                 array([-8.39981862e-10,  2.25513519e-09, -3.93866939e-09,  2.53190047e-09])
       timeseries
         dt_dstau                                                 |72.88456479|             input   s            traj.climb.timeseries.dt_dstau                                              
                                                                  val:
@@ -1326,12 +1326,12 @@ traj
                                                                         [1.3109816 ],
                                                                         [1.31446176],
                                                                         [1.31556719]])
-        input_values:specific_energy_rate_excess                 |6.3109082|               input   m/s          traj.climb.timeseries.input_values:specific_energy_rate_excess              
+        input_values:specific_energy_rate_excess                 |6.31092335|              input   m/s          traj.climb.timeseries.input_values:specific_energy_rate_excess              
                                                                  val:
-                                                                 array([[3.18796291],
-                                                                        [3.20744561],
-                                                                        [3.13559702],
-                                                                        [3.08946254]])
+                                                                 array([[3.18796265],
+                                                                        [3.20742392],
+                                                                        [3.13561061],
+                                                                        [3.08950247]])
         input_values:fuel_flow_rate_negative_total               |0.0|                     input   lbm/h        traj.climb.timeseries.input_values:fuel_flow_rate_negative_total            
                                                                  val:
                                                                  array([[0.],
@@ -1380,12 +1380,12 @@ traj
                                                                         [1.20898703],
                                                                         [0.99999973],
                                                                         [0.93367105]])
-        input_values:current_flow_max                            |57.2906494|              input   A            traj.climb.timeseries.input_values:current_flow_max                         
+        input_values:current_flow_max                            |57.29033647|             input   A            traj.climb.timeseries.input_values:current_flow_max                         
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.78467029],
-                                                                        [28.83734932],
-                                                                        [29.6044128 ]])
+                                                                 array([[28.32343365],
+                                                                        [27.78506319],
+                                                                        [28.83710051],
+                                                                        [29.60367642]])
         input_values:mass                                        |9.87489132|              input   kg           traj.climb.timeseries.input_values:mass                                     
                                                                  val:
                                                                  array([[4.93744566],
@@ -1422,12 +1422,12 @@ traj
                                                                         [1.3109816 ],
                                                                         [1.31446176],
                                                                         [1.31556719]])
-        specific_energy_rate_excess                              |6.3109082|               output  m/s          traj.climb.timeseries.specific_energy_rate_excess                           
+        specific_energy_rate_excess                              |6.31092335|              output  m/s          traj.climb.timeseries.specific_energy_rate_excess                           
                                                                  val:
-                                                                 array([[3.18796291],
-                                                                        [3.20744561],
-                                                                        [3.13559702],
-                                                                        [3.08946254]])
+                                                                 array([[3.18796265],
+                                                                        [3.20742392],
+                                                                        [3.13561061],
+                                                                        [3.08950247]])
         fuel_flow_rate_negative_total                            |0.0|                     output  lbm/h        traj.climb.timeseries.fuel_flow_rate_negative_total                         
                                                                  val:
                                                                  array([[0.],
@@ -1476,12 +1476,12 @@ traj
                                                                         [1.20898703],
                                                                         [0.99999973],
                                                                         [0.93367105]])
-        current_flow_max                                         |57.2906494|              output  A            traj.climb.timeseries.current_flow_max                                      
+        current_flow_max                                         |57.29033647|             output  A            traj.climb.timeseries.current_flow_max                                      
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.78467029],
-                                                                        [28.83734932],
-                                                                        [29.6044128 ]])
+                                                                 array([[28.32343365],
+                                                                        [27.78506319],
+                                                                        [28.83710051],
+                                                                        [29.60367642]])
         mass                                                     |9.87489132|              output  kg           traj.climb.timeseries.mass                                                  
                                                                  val:
                                                                  array([[4.93744566],
@@ -1522,12 +1522,12 @@ traj
                                                                         [1.3109816 ],
                                                                         [1.31446176],
                                                                         [1.31556719]])
-        input_values:specific_energy_rate_excess                 |6.3109082|               input   m/s          traj.climb.mission_bus_variables.input_values:specific_energy_rate_excess   
+        input_values:specific_energy_rate_excess                 |6.31092335|              input   m/s          traj.climb.mission_bus_variables.input_values:specific_energy_rate_excess   
                                                                  val:
-                                                                 array([[3.18796291],
-                                                                        [3.20744561],
-                                                                        [3.13559702],
-                                                                        [3.08946254]])
+                                                                 array([[3.18796265],
+                                                                        [3.20742392],
+                                                                        [3.13561061],
+                                                                        [3.08950247]])
         input_values:fuel_flow_rate_negative_total               |0.0|                     input   lbm/h        traj.climb.mission_bus_variables.input_values:fuel_flow_rate_negative_total 
                                                                  val:
                                                                  array([[0.],
@@ -1576,12 +1576,12 @@ traj
                                                                         [1.20898703],
                                                                         [0.99999973],
                                                                         [0.93367105]])
-        input_values:current_flow_max                            |57.2906494|              input   A            traj.climb.mission_bus_variables.input_values:current_flow_max              
+        input_values:current_flow_max                            |57.29033647|             input   A            traj.climb.mission_bus_variables.input_values:current_flow_max              
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.78467029],
-                                                                        [28.83734932],
-                                                                        [29.6044128 ]])
+                                                                 array([[28.32343365],
+                                                                        [27.78506319],
+                                                                        [28.83710051],
+                                                                        [29.60367642]])
         input_values:mass                                        |9.87489132|              input   kg           traj.climb.mission_bus_variables.input_values:mass                          
                                                                  val:
                                                                  array([[4.93744566],
@@ -1614,11 +1614,11 @@ traj
                                                                  array([[1.30847129],
                                                                         [1.3120093 ],
                                                                         [1.31556719]])
-        specific_energy_rate_excess                              |5.4712963|               output  m/s          traj.climb.mission_bus_variables.specific_energy_rate_excess                
+        specific_energy_rate_excess                              |5.47130761|              output  m/s          traj.climb.mission_bus_variables.specific_energy_rate_excess                
                                                                  val:
-                                                                 array([[3.18796291],
-                                                                        [3.19799889],
-                                                                        [3.08946254]])
+                                                                 array([[3.18796265],
+                                                                        [3.19797993],
+                                                                        [3.08950247]])
         fuel_flow_rate_negative_total                            |0.0|                     output  lbm/h        traj.climb.mission_bus_variables.fuel_flow_rate_negative_total              
                                                                  val:
                                                                  array([[0.],
@@ -1659,11 +1659,11 @@ traj
                                                                  array([[1.35989475],
                                                                         [1.14724519],
                                                                         [0.93367105]])
-        current_flow_max                                         |49.55690542|             output  A            traj.climb.mission_bus_variables.current_flow_max                           
+        current_flow_max                                         |49.55666239|             output  A            traj.climb.mission_bus_variables.current_flow_max                           
                                                                  val:
-                                                                 array([[28.32342905],
-                                                                        [27.87918551],
-                                                                        [29.6044128 ]])
+                                                                 array([[28.32343365],
+                                                                        [27.87953078],
+                                                                        [29.60367642]])
         mass                                                     |8.55190674|              output  kg           traj.climb.mission_bus_variables.mass                                       
                                                                  val:
                                                                  array([[4.93744566],
@@ -1680,9 +1680,9 @@ traj
                                                                  array([36.4422824, 36.4422824, 36.4422824])
         f_approx:mass                                            |0.0|                     input   kg/s         traj.climb.collocation_constraint.f_approx:mass                             
                                                                  val:
-                                                                 array([[-1.20356480e-11],
-                                                                        [ 1.63314424e-11],
-                                                                        [-1.06751190e-11]])
+                                                                 array([[-1.20446170e-11],
+                                                                        [ 1.63188420e-11],
+                                                                        [-1.06935931e-11]])
         f_computed:mass                                          |0.0|                     input   kg/s         traj.climb.collocation_constraint.f_computed:mass                           
                                                                  val:
                                                                  array([[0.],
@@ -1700,14 +1700,14 @@ traj
                                                                         [6.75016263]])
         defects:mass                                             |0.0|                     output  kg           traj.climb.collocation_constraint.defects:mass                              
                                                                  val:
-                                                                 array([[-4.38606484e-10],
-                                                                        [ 5.95155036e-10],
-                                                                        [-3.89025701e-10]])
+                                                                 array([[-4.38933334e-10],
+                                                                        [ 5.94695848e-10],
+                                                                        [-3.89698940e-10]])
         defects:distance                                         |0.0|                     output  m            traj.climb.collocation_constraint.defects:distance                          
                                                                  val:
-                                                                 array([[ 6.47344976e-14],
-                                                                        [ 6.47344976e-14],
-                                                                        [-1.29468995e-13]])
+                                                                 array([[ 1.29468995e-13],
+                                                                        [-1.94203493e-13],
+                                                                        [ 3.23672488e-14]])
     cruise
       param_comp
         t_initial                                                [72.88456479]             input   s            traj.cruise.t_initial                                                       
@@ -1762,11 +1762,11 @@ traj
                                                                  array([[30.00000022],
                                                                         [30.00000022],
                                                                         [30.00000022]])
-        controls:current_flow_max                                |49.04359139|             input   A            traj.cruise.controls:current_flow_max                                       
+        controls:current_flow_max                                |49.04369619|             input   A            traj.cruise.controls:current_flow_max                                       
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.78123122],
-                                                                        [28.8365663 ]])
+                                                                 array([[28.31841999],
+                                                                        [27.78151494],
+                                                                        [28.83641192]])
         control_values:mach                                      |0.04|                    output  unitless     traj.cruise.control_values:mach                                             
                                                                  val:
                                                                  array([[0.02],
@@ -1835,58 +1835,58 @@ traj
                                                                         [30.00000022]])
         control_rates:current_flow_rate                          |0.0|                     output  A/s          traj.cruise.control_rates:current_flow_rate                                 
                                                                  val:
-                                                                 array([[1.83937177e-10],
-                                                                        [2.01545147e-10],
-                                                                        [2.25842117e-10],
-                                                                        [2.33533118e-10]])
+                                                                 array([[1.78036144e-10],
+                                                                        [2.04680368e-10],
+                                                                        [2.41443704e-10],
+                                                                        [2.53080090e-10]])
         control_rates:current_flow_rate2                         |0.0|                     output  A/s**2       traj.cruise.control_rates:current_flow_rate2                                
                                                                  val:
-                                                                 array([[5.53250777e-12],
-                                                                        [5.53356907e-12],
-                                                                        [5.53356907e-12],
-                                                                        [5.53392283e-12]])
+                                                                 array([[8.37181383e-12],
+                                                                        [8.37287512e-12],
+                                                                        [8.37287512e-12],
+                                                                        [8.37287512e-12]])
         control_boundary_values:current_flow                     |42.42640718|             output  A            traj.cruise.control_comp.control_boundary_values:current_flow               
                                                                  val:
                                                                  array([[30.00000022],
                                                                         [30.00000022]])
         control_boundary_rates:current_flow_rate                 |0.0|                     output  A/s          traj.cruise.control_comp.control_boundary_rates:current_flow_rate           
                                                                  val:
-                                                                 array([[1.83937177e-10],
-                                                                        [2.33533118e-10]])
+                                                                 array([[1.78036144e-10],
+                                                                        [2.53080090e-10]])
         control_boundary_rates:current_flow_rate2                |0.0|                     output  A/s**2       traj.cruise.control_comp.control_boundary_rates:current_flow_rate2          
                                                                  val:
-                                                                 array([[5.53250777e-12],
-                                                                        [5.53392283e-12]])
-        control_values:current_flow_max                          |57.28616185|             output  A            traj.cruise.control_values:current_flow_max                                 
+                                                                 array([[8.37181383e-12],
+                                                                        [8.37287512e-12]])
+        control_values:current_flow_max                          |57.28600696|             output  A            traj.cruise.control_values:current_flow_max                                 
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.78123122],
-                                                                        [28.8365663 ],
-                                                                        [29.60456862]])
-        control_rates:current_flow_max_rate                      |0.85913278|              output  A/s          traj.cruise.control_rates:current_flow_max_rate                             
+                                                                 array([[28.31841999],
+                                                                        [27.78151494],
+                                                                        [28.83641192],
+                                                                        [29.60409528]])
+        control_rates:current_flow_max_rate                      |0.85877593|              output  A/s          traj.cruise.control_rates:current_flow_max_rate                             
                                                                  val:
-                                                                 array([[-0.34069039],
-                                                                        [ 0.0031321 ],
-                                                                        [ 0.47753697],
-                                                                        [ 0.62768449]])
-        control_rates:current_flow_max_rate2                     |0.21607521|              output  A/s**2       traj.cruise.control_rates:current_flow_max_rate2                            
+                                                                 array([[-0.34054879],
+                                                                        [ 0.00313087],
+                                                                        [ 0.47733866],
+                                                                        [ 0.6274238 ]])
+        control_rates:current_flow_max_rate2                     |0.21598544|              output  A/s**2       traj.cruise.control_rates:current_flow_max_rate2                            
                                                                  val:
-                                                                 array([[0.1080376],
-                                                                        [0.1080376],
-                                                                        [0.1080376],
-                                                                        [0.1080376]])
-        control_boundary_values:current_flow_max                 |40.96779192|             output  A            traj.cruise.control_comp.control_boundary_values:current_flow_max           
+                                                                 array([[0.10799272],
+                                                                        [0.10799272],
+                                                                        [0.10799272],
+                                                                        [0.10799272]])
+        control_boundary_values:current_flow_max                 |40.9674916|              output  A            traj.cruise.control_comp.control_boundary_values:current_flow_max           
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [29.60456862]])
-        control_boundary_rates:current_flow_max_rate             |0.71418329|              output  A/s          traj.cruise.control_comp.control_boundary_rates:current_flow_max_rate       
+                                                                 array([[28.31841999],
+                                                                        [29.60409528]])
+        control_boundary_rates:current_flow_max_rate             |0.71388662|              output  A/s          traj.cruise.control_comp.control_boundary_rates:current_flow_max_rate       
                                                                  val:
-                                                                 array([[-0.34069039],
-                                                                        [ 0.62768449]])
-        control_boundary_rates:current_flow_max_rate2            |0.15278825|              output  A/s**2       traj.cruise.control_comp.control_boundary_rates:current_flow_max_rate2      
+                                                                 array([[-0.34054879],
+                                                                        [ 0.6274238 ]])
+        control_boundary_rates:current_flow_max_rate2            |0.15272477|              output  A/s**2       traj.cruise.control_comp.control_boundary_rates:current_flow_max_rate2      
                                                                  val:
-                                                                 array([[0.1080376],
-                                                                        [0.1080376]])
+                                                                 array([[0.10799272],
+                                                                        [0.10799272]])
       indep_states
         initial_states:mass                                      [[4.93744566]]            input   kg           traj.cruise.initial_states:mass                                             
         initial_states:distance                                  [[493.10124843]]          input   m            traj.cruise.initial_states:distance                                         
@@ -1920,9 +1920,9 @@ traj
                                                                         [554.06124843]])
         staterate_col:mass                                       |0.0|                     output  kg/s         traj.cruise.state_interp.staterate_col:mass                                 
                                                                  val:
-                                                                 array([[-6.64975955e-12],
-                                                                        [-2.67789864e-11],
-                                                                        [-1.96032549e-11]])
+                                                                 array([[-5.64419002e-12],
+                                                                        [-2.65647529e-11],
+                                                                        [-1.96967963e-11]])
         staterate_col:distance                                   |11.77977553|             output  m/s          traj.cruise.state_interp.staterate_col:distance                             
                                                                  val:
                                                                  array([[6.80105657],
@@ -2039,60 +2039,60 @@ traj
             battery_max
               aircraft:battery:voltage                           [22.2]                    input   V            traj.cruise.rhs_all.aircraft:battery:voltage                                
               aircraft:battery:resistance                        [0.05]                    input   ohm          traj.cruise.rhs_all.aircraft:battery:resistance                             
-              current_flow                                       |57.28616185|             input   A            traj.cruise.rhs_all.current_flow_max                                        
+              current_flow                                       |57.28600696|             input   A            traj.cruise.rhs_all.current_flow_max                                        
                                                                  val:
-                                                                 array([28.31835963, 27.78123122, 28.8365663 , 29.60456862])
-              voltage_out                                        |41.53653632|             output  V            traj.cruise.rhs_all.rc_electric.battery_max.voltage_out                     
+                                                                 array([28.31841999, 27.78151494, 28.83641192, 29.60409528])
+              voltage_out                                        |41.53654337|             output  V            traj.cruise.rhs_all.rc_electric.battery_max.voltage_out                     
                                                                  val:
-                                                                 array([20.78408202, 20.81093844, 20.75817168, 20.71977157])
-              power                                              |1189.64368467|           output  W            traj.cruise.rhs_all.rc_electric.battery_max.power                           
+                                                                 array([20.784079  , 20.81092425, 20.7581794 , 20.71979524])
+              power                                              |1189.64074506|           output  W            traj.cruise.rhs_all.rc_electric.battery_max.power                           
                                                                  val:
-                                                                 array([588.57110923, 578.15349261, 598.59439407, 613.39989911])
+                                                                 array([588.57227828, 578.15900309, 598.591412  , 613.39079237])
             esc_max
-              voltage_in                                         |41.53653632|             input   V            traj.cruise.rhs_all.esc_max.voltage_in                                      
+              voltage_in                                         |41.53654337|             input   V            traj.cruise.rhs_all.esc_max.voltage_in                                      
                                                                  val:
-                                                                 array([20.78408202, 20.81093844, 20.75817168, 20.71977157])
-              current_flow                                       |57.28616185|             input   A            traj.cruise.rhs_all.current_flow_max                                        
+                                                                 array([20.784079  , 20.81092425, 20.7581794 , 20.71979524])
+              current_flow                                       |57.28600696|             input   A            traj.cruise.rhs_all.current_flow_max                                        
                                                                  val:
-                                                                 array([28.31835963, 27.78123122, 28.8365663 , 29.60456862])
+                                                                 array([28.31841999, 27.78151494, 28.83641192, 29.60409528])
               throttle                                           |2.0|                     input   unitless     traj.cruise.rhs_all.full_throttle                                           
                                                                  val:
                                                                  array([1., 1., 1., 1.])
               efficiency                                         |2.00004545|              output  unitless     traj.cruise.rhs_all.rc_electric.esc_max.efficiency                          
                                                                  val:
                                                                  array([1.00002272, 1.00002272, 1.00002272, 1.00002272])
-              voltage_out                                        |41.53748017|             output  V            traj.cruise.rhs_all.rc_electric.esc_max.voltage_out                         
+              voltage_out                                        |41.53748722|             output  V            traj.cruise.rhs_all.rc_electric.esc_max.voltage_out                         
                                                                  val:
-                                                                 array([20.7845543 , 20.81141133, 20.75864338, 20.72024239])
-              power                                              |0.02703267|              output  W            traj.cruise.rhs_all.rc_electric.esc_max.power                               
+                                                                 array([20.78455128, 20.81139715, 20.7586511 , 20.72026606])
+              power                                              |0.0270326|               output  W            traj.cruise.rhs_all.rc_electric.esc_max.power                               
                                                                  val:
-                                                                 array([0.0133743 , 0.01313757, 0.01360206, 0.01393849])
-              current_out                                        |57.28616185|             output  A            traj.cruise.rhs_all.rc_electric.esc_max.current_out                         
+                                                                 array([0.01337432, 0.0131377 , 0.01360199, 0.01393828])
+              current_out                                        |57.28600696|             output  A            traj.cruise.rhs_all.rc_electric.esc_max.current_out                         
                                                                  val:
-                                                                 array([28.31835963, 27.78123122, 28.8365663 , 29.60456862])
+                                                                 array([28.31841999, 27.78151494, 28.83641192, 29.60409528])
             motor_max
               aircraft:engine:motor:idle_current                 [0.90999999]              input   A            traj.cruise.rhs_all.aircraft:engine:motor:idle_current                      
               aircraft:engine:motor:max_cont_current             [64.52187405]             input   A            traj.cruise.rhs_all.aircraft:engine:motor:max_cont_current                  
               aircraft:engine:motor:resistance                   [0.05582267]              input   ohm          traj.cruise.rhs_all.aircraft:engine:motor:resistance                        
               aircraft:engine:motor:kv                           [165.65316524]            input   rpm/V        traj.cruise.rhs_all.aircraft:engine:motor:kv                                
-              voltage_in                                         |41.53748017|             input   V            traj.cruise.rhs_all.motor_max.voltage_in                                    
+              voltage_in                                         |41.53748722|             input   V            traj.cruise.rhs_all.motor_max.voltage_in                                    
                                                                  val:
-                                                                 array([20.7845543 , 20.81141133, 20.75864338, 20.72024239])
-              current_flow                                       |57.28616185|             input   A            traj.cruise.rhs_all.current_flow_max                                        
+                                                                 array([20.78455128, 20.81139715, 20.7586511 , 20.72026606])
+              current_flow                                       |57.28600696|             input   A            traj.cruise.rhs_all.current_flow_max                                        
                                                                  val:
-                                                                 array([28.31835963, 27.78123122, 28.8365663 , 29.60456862])
-              current                                            |57.28616185|             input   A            traj.cruise.rhs_all.motor_max.current                                       
+                                                                 array([28.31841999, 27.78151494, 28.83641192, 29.60409528])
+              current                                            |57.28600696|             input   A            traj.cruise.rhs_all.motor_max.current                                       
                                                                  val:
-                                                                 array([28.31835963, 27.78123122, 28.8365663 , 29.60456862])
-              rotations_per_minute                               |6351.25925289|           output  rpm          traj.cruise.rhs_all.rc_electric.rotations_per_minute_max                    
+                                                                 array([28.31841999, 27.78151494, 28.83641192, 29.60409528])
+              rotations_per_minute                               |6351.26170255|           output  rpm          traj.cruise.rhs_all.rc_electric.rotations_per_minute_max                    
                                                                  val:
-                                                                 array([3181.16163535, 3190.57752216, 3172.07744768, 3158.6143304 ])
-              power                                              |126.55567903|            output  W            traj.cruise.rhs_all.rc_electric.motor_max.power                             
+                                                                 array([3181.16057725, 3190.57254843, 3172.08015399, 3158.62262797])
+              power                                              |126.55513976|            output  W            traj.cruise.rhs_all.rc_electric.motor_max.power                             
                                                                  val:
-                                                                 array([-62.24125276, -60.61089127, -63.84470892, -66.2762352 ])
-              current_constraint                                 |71.78599236|             output  A            traj.cruise.rhs_all.rc_electric.current_constraint                          
+                                                                 array([-62.24143778, -60.61174396, -63.84422676, -66.27471632])
+              current_constraint                                 |71.78612369|             output  A            traj.cruise.rhs_all.rc_electric.current_constraint                          
                                                                  val:
-                                                                 array([-36.20351442, -36.74064283, -35.68530775, -34.91730543])
+                                                                 array([-36.20345406, -36.74035911, -35.68546213, -34.91777877])
             propco_max
               temp_diameter                                      |1.016|                   input   m            traj.cruise.rhs_all.temp_diameter                                           
                                                                  val:
@@ -2100,9 +2100,9 @@ traj
               temp_pitch                                         |20.0|                    input   inch         traj.cruise.rhs_all.temp_pitch                                              
                                                                  val:
                                                                  array([10., 10., 10., 10.])
-              rotations_per_minute                               |105.85432088|            input   rev/s        traj.cruise.rhs_all.rotations_per_minute_max                                
+              rotations_per_minute                               |105.85436171|            input   rev/s        traj.cruise.rhs_all.rotations_per_minute_max                                
                                                                  val:
-                                                                 array([53.01936059, 53.17629204, 52.86795746, 52.64357217])
+                                                                 array([53.01934295, 53.17620914, 52.86800257, 52.64371047])
               velocity                                           |13.60211314|             input   m/s          traj.cruise.rhs_all.velocity                                                
                                                                  val:
                                                                  array([6.80105657, 6.80105657, 6.80105657, 6.80105657])
@@ -2113,48 +2113,48 @@ traj
               cp_train                                           |2.90234429|              input   unitless     traj.cruise.rhs_all.propco_max.cp_train                                     
                                                                  val:
                                                                  array([0.0246, 0.0246, 0.0246, ..., 0.011 , 0.0079, 0.0047], shape=(8616,))
-              ct                                                 |0.12420789|              output  unitless     traj.cruise.rhs_all.rc_electric.ct_max                                      
+              ct                                                 |0.12420791|              output  unitless     traj.cruise.rhs_all.rc_electric.ct_max                                      
                                                                  val:
-                                                                 array([0.06215794, 0.06224893, 0.06206983, 0.06193865])
+                                                                 array([0.06215793, 0.06224888, 0.06206985, 0.06193873])
               cp                                                 |0.05765389|              output  unitless     traj.cruise.rhs_all.rc_electric.cp_max                                      
                                                                  val:
-                                                                 array([0.02883084, 0.02883735, 0.02882452, 0.02881505])
+                                                                 array([0.02883084, 0.02883735, 0.02882452, 0.02881506])
             prop_max
               density                                            |2.43597912|              input   kg/m**3      traj.cruise.rhs_all.density                                                 
                                                                  val:
                                                                  array([1.21798956, 1.21798956, 1.21798956, 1.21798956])
               aircraft:engine:propeller:diameter                 [0.508]                   input   m            traj.cruise.rhs_all.aircraft:engine:propeller:diameter                      
-              rotations_per_minute                               |105.85432088|            input   rev/s        traj.cruise.rhs_all.rotations_per_minute_max                                
+              rotations_per_minute                               |105.85436171|            input   rev/s        traj.cruise.rhs_all.rotations_per_minute_max                                
                                                                  val:
-                                                                 array([53.01936059, 53.17629204, 52.86795746, 52.64357217])
-              ct                                                 |0.12420789|              input   unitless     traj.cruise.rhs_all.ct_max                                                  
+                                                                 array([53.01934295, 53.17620914, 52.86800257, 52.64371047])
+              ct                                                 |0.12420791|              input   unitless     traj.cruise.rhs_all.ct_max                                                  
                                                                  val:
-                                                                 array([0.06215794, 0.06224893, 0.06206983, 0.06193865])
+                                                                 array([0.06215793, 0.06224888, 0.06206985, 0.06193873])
               cp                                                 |0.05765389|              input   unitless     traj.cruise.rhs_all.cp_max                                                  
                                                                  val:
-                                                                 array([0.02883084, 0.02883735, 0.02882452, 0.02881505])
-              thrust_net                                         |28.22465288|             output  N            traj.cruise.rhs_all.rc_electric.thrust_net_max                              
+                                                                 array([0.02883084, 0.02883735, 0.02882452, 0.02881506])
+              thrust_net                                         |28.22467891|             output  N            traj.cruise.rhs_all.rc_electric.thrust_net_max                              
                                                                  val:
-                                                                 array([14.17307191, 14.27796819, 14.07226519, 13.92357854])
-              prop_power                                         |352.26145432|            output  W            traj.cruise.rhs_all.rc_electric.prop_power_max                              
+                                                                 array([14.17306015, 14.27791267, 14.07229517, 13.92366992])
+              prop_power                                         |352.2618469|             output  W            traj.cruise.rhs_all.rc_electric.prop_power_max                              
                                                                  val:
-                                                                 array([177.06101563, 178.67822739, 175.50996588, 173.22780342])
+                                                                 array([177.06083444, 178.67737057, 175.51042662, 173.22920389])
             power_summation_max
-              power_batt                                         |1189.64368467|           input   W            traj.cruise.rhs_all.power_summation_max.power_batt                          
+              power_batt                                         |1189.64074506|           input   W            traj.cruise.rhs_all.power_summation_max.power_batt                          
                                                                  val:
-                                                                 array([588.57110923, 578.15349261, 598.59439407, 613.39989911])
-              power_esc                                          |0.02703267|              input   W            traj.cruise.rhs_all.power_summation_max.power_esc                           
+                                                                 array([588.57227828, 578.15900309, 598.591412  , 613.39079237])
+              power_esc                                          |0.0270326|               input   W            traj.cruise.rhs_all.power_summation_max.power_esc                           
                                                                  val:
-                                                                 array([0.0133743 , 0.01313757, 0.01360206, 0.01393849])
-              power_motor                                        |126.55567903|            input   W            traj.cruise.rhs_all.power_summation_max.power_motor                         
+                                                                 array([0.01337432, 0.0131377 , 0.01360199, 0.01393828])
+              power_motor                                        |126.55513976|            input   W            traj.cruise.rhs_all.power_summation_max.power_motor                         
                                                                  val:
-                                                                 array([-62.24125276, -60.61089127, -63.84470892, -66.2762352 ])
-              prop_power                                         |352.26145432|            input   W            traj.cruise.rhs_all.prop_power_max                                          
+                                                                 array([-62.24143778, -60.61174396, -63.84422676, -66.27471632])
+              prop_power                                         |352.2618469|             input   W            traj.cruise.rhs_all.prop_power_max                                          
                                                                  val:
-                                                                 array([177.06101563, 178.67822739, 175.50996588, 173.22780342])
-              power_net                                          |711.13115547|            output  W            traj.cruise.rhs_all.rc_electric.power_net_max                               
+                                                                 array([177.06083444, 178.67737057, 175.51042662, 173.22920389])
+              power_net                                          |711.12813398|            output  W            traj.cruise.rhs_all.rc_electric.power_net_max                               
                                                                  val:
-                                                                 array([349.28221513, 338.87751152, 359.25332133, 373.90979898])
+                                                                 array([349.28338038, 338.88302626, 359.25036061, 373.90081044])
             battery
               aircraft:battery:voltage                           [22.2]                    input   V            traj.cruise.rhs_all.aircraft:battery:voltage                                
               aircraft:battery:resistance                        [0.05]                    input   ohm          traj.cruise.rhs_all.aircraft:battery:resistance                             
@@ -2273,14 +2273,14 @@ traj
                                                                  array([31.14316502, 31.14316502, 31.14316502, 31.14316502])
               power_net                                          |947.81279897|            output  W            traj.cruise.rhs_all.rc_electric.power_net                                   
                                                                  val:
-                                                                 array([473.90639947, 473.90639948, 473.90639949, 473.9063995 ])
+                                                                 array([473.90639947, 473.90639948, 473.9063995 , 473.9063995 ])
           vectorize_performance
             thrust_net_0                                         |1.31556719|              input   lbf          traj.cruise.rhs_all.vectorize_performance.thrust_net_0                      
                                                                  val:
                                                                  array([0.6577836, 0.6577836, 0.6577836, 0.6577836])
-            thrust_net_max_0                                     |6.34515438|              input   lbf          traj.cruise.rhs_all.vectorize_performance.thrust_net_max_0                  
+            thrust_net_max_0                                     |6.34516023|              input   lbf          traj.cruise.rhs_all.vectorize_performance.thrust_net_max_0                  
                                                                  val:
-                                                                 array([3.18623331, 3.20981493, 3.16357106, 3.13014497])
+                                                                 array([3.18623067, 3.20980245, 3.1635778 , 3.13016551])
             fuel_flow_rate_negative_0                            |0.0|                     input   lbm/h        traj.cruise.rhs_all.vectorize_performance.fuel_flow_rate_negative_0         
                                                                  val:
                                                                  array([0., 0., 0., 0.])
@@ -2305,12 +2305,12 @@ traj
                                                                         [0.6577836],
                                                                         [0.6577836],
                                                                         [0.6577836]])
-            thrust_net_max                                       |6.34515438|              output  lbf          traj.cruise.rhs_all.thrust_net_max                                          
+            thrust_net_max                                       |6.34516023|              output  lbf          traj.cruise.rhs_all.thrust_net_max                                          
                                                                  val:
-                                                                 array([[3.18623331],
-                                                                        [3.20981493],
-                                                                        [3.16357106],
-                                                                        [3.13014497]])
+                                                                 array([[3.18623067],
+                                                                        [3.20980245],
+                                                                        [3.1635778 ],
+                                                                        [3.13016551]])
             fuel_flow_rate_negative                              |0.0|                     output  lbm/h        traj.cruise.rhs_all.fuel_flow_rate_negative                                 
                                                                  val:
                                                                  array([[0.],
@@ -2354,12 +2354,12 @@ traj
                                                                         [0.6577836],
                                                                         [0.6577836],
                                                                         [0.6577836]])
-            thrust_net_max                                       |6.34515438|              input   lbf          traj.cruise.rhs_all.thrust_net_max                                          
+            thrust_net_max                                       |6.34516023|              input   lbf          traj.cruise.rhs_all.thrust_net_max                                          
                                                                  val:
-                                                                 array([[3.18623331],
-                                                                        [3.20981493],
-                                                                        [3.16357106],
-                                                                        [3.13014497]])
+                                                                 array([[3.18623067],
+                                                                        [3.20980245],
+                                                                        [3.1635778 ],
+                                                                        [3.13016551]])
             fuel_flow_rate_negative                              |0.0|                     input   lbm/h        traj.cruise.rhs_all.fuel_flow_rate_negative                                 
                                                                  val:
                                                                  array([[0.],
@@ -2381,9 +2381,9 @@ traj
             thrust_net_total                                     |2.63113438|              output  lbf          traj.cruise.rhs_all.thrust_net_total                                        
                                                                  val:
                                                                  array([1.31556719, 1.31556719, 1.31556719, 1.31556719])
-            thrust_net_max_total                                 |12.69030875|             output  lbf          traj.cruise.rhs_all.thrust_net_max_total                                    
+            thrust_net_max_total                                 |12.69032046|             output  lbf          traj.cruise.rhs_all.thrust_net_max_total                                    
                                                                  val:
-                                                                 array([6.37246663, 6.41962987, 6.32714212, 6.26028994])
+                                                                 array([6.37246134, 6.41960491, 6.3271556 , 6.26033103])
             fuel_flow_rate_negative_total                        |0.0|                     output  lbm/h        traj.cruise.rhs_all.fuel_flow_rate_negative_total                           
                                                                  val:
                                                                  array([0., 0., 0., 0.])
@@ -2431,28 +2431,28 @@ traj
               mass                                               |9.87489132|              input   kg           traj.cruise.rhs_all.mass                                                    
                                                                  val:
                                                                  array([4.93744566, 4.93744566, 4.93744566, 4.93744566])
-              thrust_net_total                                   |56.44930576|             input   N            traj.cruise.rhs_all.thrust_net_max_total                                    
+              thrust_net_total                                   |56.44935781|             input   N            traj.cruise.rhs_all.thrust_net_max_total                                    
                                                                  val:
-                                                                 array([28.34614383, 28.55593638, 28.14453039, 27.84715708])
+                                                                 array([28.3461203 , 28.55582534, 28.14459033, 27.84733983])
               drag                                               |11.70386885|             input   N            traj.cruise.rhs_all.drag                                                    
                                                                  val:
                                                                  array([5.85193442, 5.85193442, 5.85193442, 5.85193442])
-              specific_energy_rate                               |6.28504345|              output  m/s          traj.cruise.rhs_all.specific_energy_rate_excess                             
+              specific_energy_rate                               |6.28505069|              output  m/s          traj.cruise.rhs_all.specific_energy_rate_excess                             
                                                                  val:
-                                                                 array([3.15954188, 3.18900939, 3.13122321, 3.08945409])
+                                                                 array([3.15953858, 3.1889938 , 3.13123163, 3.08947976])
             altitude_rate_max
-              specific_energy_rate                               |6.28504345|              input   m/s          traj.cruise.rhs_all.mission_EOM.specific_energy_rate_excess                 
+              specific_energy_rate                               |6.28505069|              input   m/s          traj.cruise.rhs_all.mission_EOM.specific_energy_rate_excess                 
                                                                  val:
-                                                                 array([3.15954188, 3.18900939, 3.13122321, 3.08945409])
+                                                                 array([3.15953858, 3.1889938 , 3.13123163, 3.08947976])
               velocity_rate                                      |0.0|                     input   m/s**2       traj.cruise.rhs_all.velocity_rate                                           
                                                                  val:
                                                                  array([0., 0., 0., 0.])
               velocity                                           |13.60211314|             input   m/s          traj.cruise.rhs_all.velocity                                                
                                                                  val:
                                                                  array([6.80105657, 6.80105657, 6.80105657, 6.80105657])
-              altitude_rate                                      |6.28504345|              output  m/s          traj.cruise.rhs_all.altitude_rate_max                                       
+              altitude_rate                                      |6.28505069|              output  m/s          traj.cruise.rhs_all.altitude_rate_max                                       
                                                                  val:
-                                                                 array([3.15954188, 3.18900939, 3.13122321, 3.08945409])
+                                                                 array([3.15953858, 3.1889938 , 3.13123163, 3.08947976])
         throttle_balance
           thrust                                                 |2.63113438|              input   lbf          traj.cruise.rhs_all.thrust_net_total                                        
                                                                  val:
@@ -2462,7 +2462,7 @@ traj
                                                                  array([1.31556719, 1.31556719, 1.31556719, 1.31556719])
           thrust_residual                                        |0.0|                     output  lbf          traj.cruise.rhs_all.thrust_residual                                         
                                                                  val:
-                                                                 array([ 2.82818213e-12,  5.23048271e-12, -3.51274565e-12,  2.56572541e-12])
+                                                                 array([ 9.06608122e-13,  3.94018151e-12, -2.83417734e-12,  4.39448478e-12])
       timeseries
         dt_dstau                                                 |8.96331318|              input   s            traj.cruise.timeseries.dt_dstau                                             
                                                                  val:
@@ -2491,12 +2491,12 @@ traj
                                                                         [1.31556719],
                                                                         [1.31556719],
                                                                         [1.31556719]])
-        input_values:specific_energy_rate_excess                 |6.28504345|              input   m/s          traj.cruise.timeseries.input_values:specific_energy_rate_excess             
+        input_values:specific_energy_rate_excess                 |6.28505069|              input   m/s          traj.cruise.timeseries.input_values:specific_energy_rate_excess             
                                                                  val:
-                                                                 array([[3.15954188],
-                                                                        [3.18900939],
-                                                                        [3.13122321],
-                                                                        [3.08945409]])
+                                                                 array([[3.15953858],
+                                                                        [3.1889938 ],
+                                                                        [3.13123163],
+                                                                        [3.08947976]])
         input_values:fuel_flow_rate_negative_total               |0.0|                     input   lbm/h        traj.cruise.timeseries.input_values:fuel_flow_rate_negative_total           
                                                                  val:
                                                                  array([[0.],
@@ -2545,12 +2545,12 @@ traj
                                                                         [30.00000022],
                                                                         [30.00000022],
                                                                         [30.00000022]])
-        input_values:current_flow_max                            |57.28616185|             input   A            traj.cruise.timeseries.input_values:current_flow_max                        
+        input_values:current_flow_max                            |57.28600696|             input   A            traj.cruise.timeseries.input_values:current_flow_max                        
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.78123122],
-                                                                        [28.8365663 ],
-                                                                        [29.60456862]])
+                                                                 array([[28.31841999],
+                                                                        [27.78151494],
+                                                                        [28.83641192],
+                                                                        [29.60409528]])
         input_values:mass                                        |9.87489132|              input   kg           traj.cruise.timeseries.input_values:mass                                    
                                                                  val:
                                                                  array([[4.93744566],
@@ -2587,12 +2587,12 @@ traj
                                                                         [1.31556719],
                                                                         [1.31556719],
                                                                         [1.31556719]])
-        specific_energy_rate_excess                              |6.28504345|              output  m/s          traj.cruise.timeseries.specific_energy_rate_excess                          
+        specific_energy_rate_excess                              |6.28505069|              output  m/s          traj.cruise.timeseries.specific_energy_rate_excess                          
                                                                  val:
-                                                                 array([[3.15954188],
-                                                                        [3.18900939],
-                                                                        [3.13122321],
-                                                                        [3.08945409]])
+                                                                 array([[3.15953858],
+                                                                        [3.1889938 ],
+                                                                        [3.13123163],
+                                                                        [3.08947976]])
         fuel_flow_rate_negative_total                            |0.0|                     output  lbm/h        traj.cruise.timeseries.fuel_flow_rate_negative_total                        
                                                                  val:
                                                                  array([[0.],
@@ -2641,12 +2641,12 @@ traj
                                                                         [30.00000022],
                                                                         [30.00000022],
                                                                         [30.00000022]])
-        current_flow_max                                         |57.28616185|             output  A            traj.cruise.timeseries.current_flow_max                                     
+        current_flow_max                                         |57.28600696|             output  A            traj.cruise.timeseries.current_flow_max                                     
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.78123122],
-                                                                        [28.8365663 ],
-                                                                        [29.60456862]])
+                                                                 array([[28.31841999],
+                                                                        [27.78151494],
+                                                                        [28.83641192],
+                                                                        [29.60409528]])
         mass                                                     |9.87489132|              output  kg           traj.cruise.timeseries.mass                                                 
                                                                  val:
                                                                  array([[4.93744566],
@@ -2687,12 +2687,12 @@ traj
                                                                         [1.31556719],
                                                                         [1.31556719],
                                                                         [1.31556719]])
-        input_values:specific_energy_rate_excess                 |6.28504345|              input   m/s          traj.cruise.mission_bus_variables.input_values:specific_energy_rate_excess  
+        input_values:specific_energy_rate_excess                 |6.28505069|              input   m/s          traj.cruise.mission_bus_variables.input_values:specific_energy_rate_excess  
                                                                  val:
-                                                                 array([[3.15954188],
-                                                                        [3.18900939],
-                                                                        [3.13122321],
-                                                                        [3.08945409]])
+                                                                 array([[3.15953858],
+                                                                        [3.1889938 ],
+                                                                        [3.13123163],
+                                                                        [3.08947976]])
         input_values:fuel_flow_rate_negative_total               |0.0|                     input   lbm/h        traj.cruise.mission_bus_variables.input_values:fuel_flow_rate_negative_total
                                                                  val:
                                                                  array([[0.],
@@ -2741,12 +2741,12 @@ traj
                                                                         [30.00000022],
                                                                         [30.00000022],
                                                                         [30.00000022]])
-        input_values:current_flow_max                            |57.28616185|             input   A            traj.cruise.mission_bus_variables.input_values:current_flow_max             
+        input_values:current_flow_max                            |57.28600696|             input   A            traj.cruise.mission_bus_variables.input_values:current_flow_max             
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.78123122],
-                                                                        [28.8365663 ],
-                                                                        [29.60456862]])
+                                                                 array([[28.31841999],
+                                                                        [27.78151494],
+                                                                        [28.83641192],
+                                                                        [29.60409528]])
         input_values:mass                                        |9.87489132|              input   kg           traj.cruise.mission_bus_variables.input_values:mass                         
                                                                  val:
                                                                  array([[4.93744566],
@@ -2779,11 +2779,11 @@ traj
                                                                  array([[1.31556719],
                                                                         [1.31556719],
                                                                         [1.31556719]])
-        specific_energy_rate_excess                              |5.44642564|              output  m/s          traj.cruise.mission_bus_variables.specific_energy_rate_excess               
+        specific_energy_rate_excess                              |5.44643046|              output  m/s          traj.cruise.mission_bus_variables.specific_energy_rate_excess               
                                                                  val:
-                                                                 array([[3.15954188],
-                                                                        [3.1837275 ],
-                                                                        [3.08945409]])
+                                                                 array([[3.15953858],
+                                                                        [3.18371412],
+                                                                        [3.08947976]])
         fuel_flow_rate_negative_total                            |0.0|                     output  lbm/h        traj.cruise.mission_bus_variables.fuel_flow_rate_negative_total             
                                                                  val:
                                                                  array([[0.],
@@ -2824,11 +2824,11 @@ traj
                                                                  array([[30.00000022],
                                                                         [30.00000022],
                                                                         [30.00000022]])
-        current_flow_max                                         |49.55258107|             output  A            traj.cruise.mission_bus_variables.current_flow_max                          
+        current_flow_max                                         |49.55247019|             output  A            traj.cruise.mission_bus_variables.current_flow_max                          
                                                                  val:
-                                                                 array([[28.31835963],
-                                                                        [27.8764832 ],
-                                                                        [29.60456862]])
+                                                                 array([[28.31841999],
+                                                                        [27.87672745],
+                                                                        [29.60409528]])
         mass                                                     |8.55190674|              output  kg           traj.cruise.mission_bus_variables.mass                                      
                                                                  val:
                                                                  array([[4.93744566],
@@ -2845,9 +2845,9 @@ traj
                                                                  array([4.48165659, 4.48165659, 4.48165659])
         f_approx:mass                                            |0.0|                     input   kg/s         traj.cruise.collocation_constraint.f_approx:mass                            
                                                                  val:
-                                                                 array([[-6.64975955e-12],
-                                                                        [-2.67789864e-11],
-                                                                        [-1.96032549e-11]])
+                                                                 array([[-5.64419002e-12],
+                                                                        [-2.65647529e-11],
+                                                                        [-1.96967963e-11]])
         f_computed:mass                                          |0.0|                     input   kg/s         traj.cruise.collocation_constraint.f_computed:mass                          
                                                                  val:
                                                                  array([[0.],
@@ -2865,40 +2865,40 @@ traj
                                                                         [6.80105657]])
         defects:mass                                             |0.0|                     output  kg           traj.cruise.collocation_constraint.defects:mass                             
                                                                  val:
-                                                                 array([[-2.98019387e-11],
-                                                                        [-1.20014221e-10],
-                                                                        [-8.78550566e-11]])
+                                                                 array([[-2.52953214e-11],
+                                                                        [-1.19054100e-10],
+                                                                        [-8.82742768e-11]])
         defects:distance                                         |0.0|                     output  m            traj.cruise.collocation_constraint.defects:distance                         
                                                                  val:
-                                                                 array([[-2.22024924e-10],
-                                                                        [-4.67749808e-11],
-                                                                        [ 1.11454299e-11]])
+                                                                 array([[ 9.70647526e-11],
+                                                                        [ 2.05513766e-11],
+                                                                        [-4.80049586e-12]])
 post_mission
   fuel_burned
     initial_mass                                                 [10.8852044]              input   lbm          fuel_burned.initial_mass                                                    
     mass_final                                                   [10.8852044]              input   lbm          fuel_burned.mass_final                                                      
-    fuel_burned                                                  [-5.27240474e-11]         output  lbm          mission:summary:fuel_burned                                                 
+    fuel_burned                                                  [-5.3050897e-11]          output  lbm          mission:summary:fuel_burned                                                 
   reserve_fuel
     reserve_fuel_additional                                      [0.]                      input   lbm          aircraft:design:reserve_fuel_additional                                     
     reserve_fuel_burned                                          [0.]                      input   lbm          mission:summary:reserve_fuel_burned                                         
     reserve_fuel_frac_mass                                       [0.]                      input   lbm          reserve_fuel_frac_mass                                                      
     reserve_fuel                                                 [0.]                      output  lbm          mission:design:reserve_fuel                                                 
   fuel_calc
-    fuel_burned                                                  [-5.27240474e-11]         input   lbm          mission:summary:fuel_burned                                                 
+    fuel_burned                                                  [-5.3050897e-11]          input   lbm          mission:summary:fuel_burned                                                 
     fuel_margin                                                  [0.]                      input   unitless     aircraft:fuel:fuel_margin                                                   
     reserve_fuel                                                 [0.]                      input   lbm          mission:design:reserve_fuel                                                 
-    overall_fuel                                                 [-5.27240474e-11]         output  lbm          mission:summary:total_fuel_mass                                             
+    overall_fuel                                                 [-5.3050897e-11]          output  lbm          mission:summary:total_fuel_mass                                             
   cruise_distance_constraint
     final_distance                                               [0.29916914]              input   nmi          cruise_distance_constraint.final_distance                                   
     initial_distance                                             [0.26625337]              input   nmi          cruise_distance_constraint.initial_distance                                 
     target_distance                                              [0.03291577]              input   nmi          cruise_distance_constraint.target_distance                                  
-    distance_resid                                               [4.79477569e-14]          output  nmi          cruise_distance_constraint.distance_resid                                   
+    distance_resid                                               [-2.0997093e-14]          output  nmi          cruise_distance_constraint.distance_resid                                   
   mass_constraint
     initial_mass                                                 [10.8852044]              input   lbm          mission:summary:gross_mass                                                  
     operating_empty_mass                                         [10.8852044]              input   lbm          aircraft:design:operating_mass                                              
-    overall_fuel                                                 [-5.27240474e-11]         input   lbm          mission:summary:total_fuel_mass                                             
+    overall_fuel                                                 [-5.3050897e-11]          input   lbm          mission:summary:total_fuel_mass                                             
     payload_mass                                                 [0.]                      input   lbm          aircraft:crew_and_payload:total_payload_mass                                
-    mass_resid                                                   [2.5313085e-12]           output  lbm          mission:constraints:mass_residual                                           
+    mass_resid                                                   [2.04281037e-13]          output  lbm          mission:constraints:mass_residual                                           
 link_climb_mass
   lhs:mass                                                       [10.8852044]              input   lbm          link_climb_mass.lhs:mass                                                    
   rhs:mass                                                       [10.8852044]              input   lbm          mission:summary:gross_mass                                                  
@@ -2908,13 +2908,13 @@ range_constraint
   target_range                                                   [0.16457883]              input   nmi          target_range                                                                
   range_resid                                                    [-0.13459031]             output  nmi          mission:constraints:range_residual                                          
 gtow_constraint
-  lhs:GTOW                                                       [10.88520054]             input   lbm          mission:design:gross_mass                                                   
+  lhs:GTOW                                                       [10.88519724]             input   lbm          mission:design:gross_mass                                                   
   rhs:GTOW                                                       [10.8852044]              input   lbm          mission:summary:gross_mass                                                  
-  GTOW                                                           [-3.54436169e-07]         output  None         gtow_constraint.GTOW                                                        
+  GTOW                                                           [-6.57970786e-07]         output  None         gtow_constraint.GTOW                                                        
 fuel_obj
   ascent_duration                                                [0.]                      input   s            mission:takeoff:ascent_duration                                             
-  overall_fuel                                                   [-5.27240474e-11]         input   lbm          mission:summary:total_fuel_mass                                             
-  reg_objective                                                  [-5.27240474e-15]         output  unitless     mission:objectives:fuel                                                     
+  overall_fuel                                                   [-5.3050897e-11]          input   lbm          mission:summary:total_fuel_mass                                             
+  reg_objective                                                  [-5.3050897e-15]          output  unitless     mission:objectives:fuel                                                     
 range_obj
   actual_range                                                   [0.29916914]              input   nmi          mission:summary:range                                                       
   ascent_duration                                                [0.]                      input   s            mission:takeoff:ascent_duration                                             

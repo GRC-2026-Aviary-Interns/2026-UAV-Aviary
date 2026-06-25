@@ -1,6 +1,6 @@
 import numpy as np
 import os
-
+from pathlib import Path
 import openmdao.api as om
 from openmdao.utils.cs_safe import abs as cs_abs
 
@@ -105,29 +105,38 @@ class DBFHorizontalTailMass(om.ExplicitComponent):
 
 
     def load_airfoil_csv(self, file_path, delimiter=',', header=False):
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Airfoil CSV file '{file_path}' not found.")
+            file_path = Path(file_path)
 
-        skip = 1 if header else 0
-        data = np.loadtxt(file_path, delimiter=delimiter, skiprows=skip)
+            # If the path is relative, look for the CSV in the same folder as this file.
+            if not file_path.is_absolute():
+                local_airfoil_path = Path(__file__).resolve().parent / file_path.name
 
-        if data.shape[1] < 2:
-            raise ValueError('CSV must contain at least two columns for x and y coordinates.')
+                if local_airfoil_path.exists():
+                    file_path = local_airfoil_path
 
-        x = data[:, 0]
-        y = data[:, 1]
+            if not file_path.exists():
+                raise FileNotFoundError(f"Airfoil CSV file '{file_path}' not found.")
 
-        x_min = np.min(x)
-        x_max = np.max(x)
-        chord_length = x_max - x_min
+            skip = 1 if header else 0
+            data = np.loadtxt(file_path, delimiter=delimiter, skiprows=skip)
 
-        if chord_length <= 0:
-            raise ValueError('Invalid airfoil: chord length must be > 0.')
+            if data.shape[1] < 2:
+                raise ValueError('CSV must contain at least two columns for x and y coordinates.')
 
-        x_normalized = (x - x_min) / chord_length
-        y_normalized = y / chord_length
+            x = data[:, 0]
+            y = data[:, 1]
 
-        return x_normalized, y_normalized
+            x_min = np.min(x)
+            x_max = np.max(x)
+            chord_length = x_max - x_min
+
+            if chord_length <= 0:
+                raise ValueError('Invalid airfoil: chord length must be > 0.')
+
+            x_normalized = (x - x_min) / chord_length
+            y_normalized = y / chord_length
+
+            return x_normalized, y_normalized
 
     def shoelace_area(self, x, y):
         return 0.5 * cs_abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))

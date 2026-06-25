@@ -62,7 +62,6 @@ phase_info['climb']['initial_guesses']['mass'] = ([4.6, 4.6], 'kg')
 phase_info['cruise']['user_options']['time_duration_bounds'] = ((5, 80.0), 's')
 phase_info['cruise']['initial_guesses']['time'] = ([0.0, 10.0], 's')
 
-phase_info['cruise']['initial_guesses']['distance'] = ([500.0, 1500.0], 'ft')
 phase_info['cruise']['initial_guesses']['mass'] = ([4.6, 4.6], 'kg')
 
 prob = av.AviaryProblem(verbosity=1)

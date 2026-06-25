@@ -57,10 +57,11 @@ class RCPropPreMission(om.Group):
         self.add_subsystem(
             'motor_kv_calc',
             om.ExecComp(
-                'kv = m * max_current / motor_mass + b',
+                'kv = m * max_current / (motor_mass * 1000.0) + b', # The KV empirical fit appears to use motor mass in grams. Aviary provides motor_mass here in kg, so convert kg -> g. or else the number becomes unrealistically high.
+
                 kv={'val': 0.0, 'units': 'rpm/V'},
                 max_current={'val': 0.0, 'units': 'A'},
-                motor_mass={'val': 0.0, 'units': 'k g'},
+                motor_mass={'val': 0.0, 'units': 'kg'},
                 m=self.options[Aircraft.Engine.Motor.KV_EQ_SLOPE],
                 b=self.options[Aircraft.Engine.Motor.KV_EQ_INT],
             ),

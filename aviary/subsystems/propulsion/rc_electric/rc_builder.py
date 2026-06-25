@@ -63,9 +63,9 @@ class RCBuilder(EngineModel):
             },
             Aircraft.Engine.Motor.MAX_CONT_CURRENT: {
                 'units': 'A',
-                'lower': 70, #limit is based on available motor
-                'upper': 140, #limit is based on available motor
-                # 'val': 100,  
+                'lower': 30, #limit is based on available motor
+                'upper': 80, #limit is based on available motor
+                'ref': 80,    # 'val': 100,  
             },
             Aircraft.Engine.Motor.MASS: {
                 'units': 'kg',
@@ -114,6 +114,7 @@ class RCBuilder(EngineModel):
                 'val': 0.05, 
                 'units': 'ohm',
             },
+            # the variables here are defined as one value where in the example file they are design variables so they are commented out to avoid confusion
             Aircraft.Engine.Motor.RESISTANCE: {
                 'val': 0.05,  
                 'units': 'ohm',
@@ -131,11 +132,11 @@ class RCBuilder(EngineModel):
                 'units': 'A',
             },
             Aircraft.Engine.Propeller.DIAMETER: {
-                'val': 0.0,
+                'val': 20.0,
                 'units': 'm',
             },
             Aircraft.Engine.Propeller.PITCH: {
-                'val': 0.0,
+                'val': 10.0,
                 'units': 'inch',
             },
         }
@@ -148,15 +149,17 @@ class RCBuilder(EngineModel):
                 'targets': Dynamic.Vehicle.Propulsion.CURRENT,
                 'units': 'A',
                 'opt': True,
-                'lower': 10.0,
-                'ref': 1.0e2,
+                'lower': 1.0,
+                'upper': 30.0,
+                'ref': 30,
             },
             Dynamic.Vehicle.Propulsion.CURRENT_MAX: {
                 'targets': Dynamic.Vehicle.Propulsion.CURRENT_MAX,
                 'units': 'A',
                 'opt': True,
-                'lower': 10.0,
-                'ref': 1.0e2,
+                'lower': 20.0,
+                'upper': 35.0,
+                'ref': 35,
             },
         }
         return controls_dict
