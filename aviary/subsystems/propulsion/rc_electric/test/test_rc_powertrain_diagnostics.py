@@ -141,12 +141,16 @@ class TestCruiseOperatingPoint(unittest.TestCase):
 class TestPowertrainSolves(unittest.TestCase):
     """From diag_powertrain.py: the full RCPropMission converges, balances power, finite partials."""
 
-    def _build(self, throttle, nn=1):
+    def _build(self, throttle, nn=1, power_balance_mode = 'feedforward'):
         p = om.Problem()
         options = AviaryValues()
         options.set_val(Aircraft.Engine.NUM_ENGINES, 1)
         p.model.add_subsystem(
-            'rc_prop_group', RCPropMission(num_nodes=nn, aviary_options=options), promotes=['*']
+            'rc_prop_group',
+            RCPropMission(
+                num_nodes=nn, aviary_options=options, power_balance_mode=power_balance_mode
+            ),
+            promotes=['*'],
         )
         p.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=50)
         p.model.nonlinear_solver.linesearch = om.BoundsEnforceLS()
@@ -189,7 +193,7 @@ class TestPowertrainSolves(unittest.TestCase):
         self.assertGreater(p.get_val(Dynamic.Vehicle.Propulsion.THRUST, units='N')[0], 0.0)
 
     def test_power_balance(self):
-        p = self._build(throttle=0.5, nn=3)
+        p = self._build(throttle=0.5, nn=3, power_balance_mode='solver')
         p.run_model()
         battery = p.get_val('battery.power', units='W')
         esc = p.get_val('esc.power', units='W')
