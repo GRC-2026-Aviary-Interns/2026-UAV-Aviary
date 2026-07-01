@@ -79,10 +79,7 @@ class TestRCBuilder(unittest.TestCase):
         prop_power = prob.get_val('rc_electric.base.prop_power', units='W')
         power_residual = battery_power + esc_power + motor_power - prop_power
 
-        # The regression this guards is the propeller-surrogate NaN cliff (see
-        # rcpropulsion_mission notes): the powertrain must stay finite across the full
-        # throttle sweep. Not asserting residual==0 here, since NonlinearBlockGS runs
-        # with err_on_non_converge=False and the cliff is near throttle=1.0.
+       
         self.assertFalse(
             np.isnan(power_residual).any(), 'powertrain produced NaN over the throttle sweep'
         )

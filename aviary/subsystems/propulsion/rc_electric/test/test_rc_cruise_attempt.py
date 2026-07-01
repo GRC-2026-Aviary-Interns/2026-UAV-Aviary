@@ -160,11 +160,7 @@ class TestRCCruiseAttempt(unittest.TestCase):
             phase_info,
         )
 
-        # engine_builders was removed from load_inputs in the upstream catch-up merge;
-        # EngineModel instances (RCBuilder) are now registered via load_external_subsystems,
-        # which auto-sorts them into engine_models.
-        # CustomAeroBuilder must be registered here too; phase_info['external_subsystems']
-        # is no longer threaded into the ODE. It supplies 'drag'/'lift'.
+       
         prob.load_external_subsystems(external_subsystems=[RCBuilder(), CustomAeroBuilder()])
 
         prob.aviary_inputs.set_val(Aircraft.Engine.Propeller.PITCH, 12.0, units='inch')
@@ -238,11 +234,6 @@ class TestRCCruiseAttempt(unittest.TestCase):
         prob.set_val('aircraft:engine:motor:idle_current', 2.0, units='A')
         prob.set_val('aircraft:battery:voltage', 25.2, units='V')
 
-        # Powertrain warm-start (matches Cruise_Attempt.py). The throttle-balance solver
-        # defaults throttle to 1.0 -- right next to the prop's negative-thrust cliff, where
-        # the ct/cp surrogate goes NaN. Seeding the well-conditioned ~0.54-throttle operating
-        # point (RPM ~3750, current ~12 A) keeps the first solve (and the optimizer) in the
-        # good region. The 'solver_sub.' path only exists when throttle is solved, so try both.
         _rpm_targets = [
             'traj.phases.cruise.rhs_all.solver_sub.core_propulsion.rc_electric.rotations_per_minute',
             'traj.phases.cruise.rhs_all.core_propulsion.rc_electric.rotations_per_minute',
