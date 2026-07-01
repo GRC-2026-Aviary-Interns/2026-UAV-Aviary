@@ -50,12 +50,7 @@ phase_info['cruise']['user_options'].update({
     'num_segments': 5,
     'order': 3,
 
-    #Fixed Speed
-    # Cruise at ~60 ft/s (18.29 m/s, mach ~0.0538). Operating point is throttle ~0.54,
-    # RPM ~3750, current ~12 A - mid-throttle with a steep, well-conditioned thrust
-    # slope and lots of powertrain headroom. 100 ft/s ran the powertrain near full
-    # throttle (~0.85) next to the negative-thrust cliff, so IPOPT's sizing-variable
-    # steps kept pushing it into NaN/singular; 60 ft/s leaves room for that.
+    
     'mach_optimize': False,
     'mach_initial': (0.0538, 'unitless'),
     'mach_final': (0.0538, 'unitless'),
@@ -84,7 +79,7 @@ phase_info['cruise']['user_options'].update({
 
 })
 
-# Remove legacy options that are not accepted by the current cruise phase builder.
+
 phase_info['cruise']['user_options'].pop('electric_current_polynomial_order', None)
 phase_info['cruise']['user_options'].pop('electric_current_max_polynomial_order', None)
 
@@ -123,9 +118,7 @@ prob.add_phases()
 prob.add_post_mission_systems()
 prob.link_phases()
 
-# use_coloring=False: the coloring sparsity-detection perturbs design vars hard
-# enough to push the prop across its negative-thrust cliff at this speed, which
-# makes the throttle-balance Jacobian singular.
+
 prob.add_driver('IPOPT', use_coloring=False)
 prob.driver.opt_settings['print_level'] = 5
 prob.driver.opt_settings['mu_strategy'] = 'adaptive'
@@ -175,18 +168,13 @@ prob.set_val('aircraft:design:gross_mass', 7.0, units='kg')
 prob.set_val('mission:gross_mass', 7.0, units='kg')
 prob.set_val('aircraft:battery:voltage', 25.2, units='V')
 
-# Start the motor-sizing design variables strictly INSIDE their bounds. The CSV
+# Start the motor-sizing design variables strictly INSIDE bounds. The CSV
 # motor mass (0.131 kg, also seen as 0.637) is below the [0.68, 1.12] kg DV bound,
 # and an infeasible-to-bounds start makes IPOPT crash. 
 prob.set_val('aircraft:engine:motor:mass', 0.45, units='kg')   # mid of [0.25, 0.65] -> KV ~370
 prob.set_val('aircraft:engine:motor:idle_current', 2.0, units='A')
 
-# Fix 1: kick-start RPM and battery current so the propeller thrust Jacobian
-# (d_thrust/d_rpm = 2*rho*n*D^4*ct, d_thrust/d_ct = rho*n^2*D^4) is non-zero at
-# the linearization point. With RPM = 0 those partials vanish, the throttle ->
-# thrust_net_total derivative chain goes to zero, and solver_sub's Jacobian
-# becomes singular. The 'solver_sub.' prefix only exists when throttle is solved
-# (not when throttle_enforcement == 'control'), so try both paths.
+
 _rpm_targets = [
     'traj.phases.cruise.rhs_all.solver_sub.core_propulsion.rc_electric.rotations_per_minute',
     'traj.phases.cruise.rhs_all.core_propulsion.rc_electric.rotations_per_minute',

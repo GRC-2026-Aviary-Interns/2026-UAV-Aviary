@@ -77,12 +77,7 @@ phase_info['cruise']['user_options'].update({
     'num_segments': 5,
     'order': 3,
 
-    #Fixed Speed
-    # Cruise at ~60 ft/s (18.29 m/s, mach ~0.0538). Operating point is throttle ~0.54,
-    # RPM ~3750, current ~12 A - mid-throttle with a steep, well-conditioned thrust
-    # slope and lots of powertrain headroom. 100 ft/s ran the powertrain near full
-    # throttle (~0.85) next to the negative-thrust cliff, so IPOPT's sizing-variable
-    # steps kept pushing it into NaN/singular; 60 ft/s leaves room for that.
+   
     'mach_optimize': False,
     'mach_initial': (0.0538, 'unitless'),
     'mach_final': (0.0538, 'unitless'),
@@ -143,10 +138,7 @@ prob.add_phases()
 prob.add_post_mission_systems()
 prob.link_phases()
 
-# use_coloring=False: the coloring sparsity-detection perturbs design vars hard
-# enough to push the prop across its negative-thrust cliff at this speed, which
-# makes the throttle-balance Jacobian singular. IPOPT's own (smaller) steps stay
-# in the well-conditioned region, so skip coloring here.
+
 prob.add_driver('IPOPT', use_coloring=False)
 prob.driver.options["debug_print"] = ["desvars", "objs", "nl_cons"]
 
@@ -181,17 +173,11 @@ prob.set_solver_print(level=0)
 
 prob.set_initial_guesses()
 
-# Start the motor-sizing design variables strictly INSIDE their bounds. The CSV
-# motor mass (0.131 kg, also seen as 0.637) is below the [0.68, 1.12] kg DV bound,
-# and an infeasible-to-bounds start makes IPOPT thrash into wild points.
+
 prob.set_val('aircraft:engine:motor:mass', 0.45, units='kg')   # mid of [0.25, 0.65] -> KV ~370
 prob.set_val('aircraft:engine:motor:idle_current', 2.0, units='A')
 
-# Battery voltage: 6S at FULL charge = 25.2 V (4.2 V/cell). This is the
-# start-of-mission voltage, which is correct since climb+cruise happen at the top of
-# the discharge. (Nominal 22.2 V would model mid-discharge; a true model would ramp
-# 25.2 -> ~21 V via the SoC battery model.) 8S (29.6 V) is deferred until the prop
-# surrogate has the data/smoothness to support the higher-RPM operating point.
+
 prob.set_val('aircraft:battery:voltage', 25.2, units='V')
 print("Battery voltage set to:", prob.get_val('aircraft:battery:voltage', units='V'))
 
@@ -231,12 +217,7 @@ for _t in _climb_throttle_targets:
     except Exception:
         continue
 
-# Fix 1: kick-start RPM and battery current so the propeller thrust Jacobian
-# (d_thrust/d_rpm = 2*rho*n*D^4*ct, d_thrust/d_ct = rho*n^2*D^4) is non-zero at
-# the linearization point. With RPM = 0 those partials vanish, the throttle ->
-# thrust_net_total derivative chain goes to zero, and solver_sub's Jacobian
-# becomes singular. The 'solver_sub.' prefix only exists when throttle is solved
-# (not when throttle_enforcement == 'control'), so try both paths.
+
 _rpm_targets = [
     'traj.phases.cruise.rhs_all.solver_sub.core_propulsion.rc_electric.rotations_per_minute',
     'traj.phases.cruise.rhs_all.core_propulsion.rc_electric.rotations_per_minute',
@@ -246,9 +227,7 @@ _current_targets = [
     'traj.phases.cruise.rhs_all.solver_sub.core_propulsion.rc_electric.current_flow',
     'traj.phases.cruise.rhs_all.core_propulsion.rc_electric.current_flow',
 ]
-# The throttle-balance solver defaults throttle to 1.0, which drives the prop to a
-# very different operating point than the cruise solution; seeding a mid-range
-# throttle keeps the Newton's first linearization well-conditioned.
+
 _throttle_targets = [
     'traj.phases.cruise.rhs_all.solver_sub.throttle',
     'traj.phases.cruise.rhs_all.solver_sub.core_propulsion.rc_electric.throttle',
